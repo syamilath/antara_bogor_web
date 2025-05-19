@@ -1,0 +1,485 @@
+@import "tailwindcss"; /* Use single import for Tailwind v4 */
+@import '@fortawesome/fontawesome-free/css/all.min.css'; /* Font Awesome for RetroNews.jsx icons */
+
+/* Note: If the Font Awesome import fails, include it in app/layout.js via CDN as a fallback:
+   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+   Ensure @fortawesome/fontawesome-free is installed: npm install @fortawesome/fontawesome-free@^6.6.0
+*/
+
+/* Custom Properties */
+:root {
+  /* RetroNews Colors */
+  --primary: #013f6e;
+  --secondary: #a9a9a9;
+  --bg: #e2e8f0;
+  --text: #1e293b;
+  --shadow-light: #ffffff;
+  --shadow-dark: #c1c8d1;
+
+  /* Admin Panel Colors */
+  --background: #ffffff;
+  --foreground: #171717;
+  --admin-primary: #013f6e;
+  --admin-accent: #a9a9a9;
+}
+
+.dark {
+  /* RetroNews Dark Mode */
+  --bg: #1e293b;
+  --text: #e2e8f0;
+  --shadow-light: #334155;
+  --shadow-dark: #0f172a;
+
+  /* Admin Panel Dark Mode */
+  --background: #0a0a0a;
+  --foreground: #ededed;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0a0a0a;
+    --foreground: #ededed;
+  }
+}
+
+/* Base Styles */
+body {
+  font-family: 'Tiempos Text', 'Tiempos Headline', Arial, Helvetica, sans-serif;
+  @apply bg-[var(--bg)] text-[var(--text)] min-h-screen;
+  background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ed 100%);
+}
+
+.dark body {
+  @apply bg-[var(--background)] text-[var(--foreground)];
+}
+
+/* RetroNews Components */
+.neumorphic {
+  @apply rounded-2xl bg-[var(--bg)] shadow-[8px_8px_16px_var(--shadow-dark),-8px_-8px_16px_var(--shadow-light)] transition-all duration-300;
+}
+
+.neumorphic-inset {
+  @apply rounded-xl bg-[var(--bg)] shadow-[inset_5px_5px_10px_var(--shadow-dark),inset_-5px_-5px_10px_var(--shadow-light)] transition-shadow duration-300;
+}
+
+.neumorphic-pressed {
+  @apply shadow-[inset_4px_4px_8px_var(--shadow-dark),inset_-4px_-4px_8px_var(--shadow-light)];
+}
+
+.neumorphic-button {
+  @apply rounded-2xl bg-[var(--bg)] shadow-[8px_8px_16px_var(--shadow-dark),-8px_-8px_16px_var(--shadow-light)] transition-all duration-300 w-full py-3 px-4 rounded-lg font-semibold;
+}
+
+.neumorphic-button-primary {
+  @apply rounded-2xl bg-[var(--primary)] text-white hover:bg-blue-600 dark:hover:bg-blue-500 active:shadow-[inset_4px_4px_8px_var(--shadow-dark),inset_-4px_-4px_8px_var(--shadow-light)] transition-all duration-300 w-full py-3 px-4 rounded-lg font-semibold;
+}
+
+.neumorphic-button:disabled {
+  @apply opacity-60 cursor-not-allowed shadow-[inset_2px_2px_4px_var(--shadow-dark),inset_-2px_-2px_4px_var(--shadow-light)];
+}
+
+.neumorphic-flat {
+  @apply rounded-2xl bg-[var(--bg)] shadow-[4px_4px_8px_var(--shadow-dark),-4px_-4px_8px_var(--shadow-light)];
+}
+
+.neumorphic-btn {
+  @apply rounded-xl bg-[var(--bg)] shadow-[5px_5px_10px_var(--shadow-dark),-5px_-5px_10px_var(--shadow-light)] transition-all duration-300 relative overflow-hidden;
+}
+
+.neumorphic-btn:hover {
+  @apply shadow-[3px_3px_6px_var(--shadow-dark),-3px_-3px_6px_var(--shadow-light)];
+}
+
+.neumorphic-btn:active {
+  @apply shadow-[inset_2px_2px_5px_var(--shadow-dark),inset_-2px_-2px_5px_var(--shadow-light)];
+}
+
+.neumorphic-btn-primary {
+  @apply bg-[var(--primary)] text-white shadow-[5px_5px_10px_#1d4ed8,-5px_-5px_10px_#93c5fd];
+}
+
+.neumorphic-btn-primary:hover {
+  @apply shadow-[2px_2px_5px_#1d4ed8,-2px_-2px_5px_#93c5fd];
+}
+
+.neumorphic-btn-secondary {
+  @apply bg-[var(--secondary)] text-white shadow-[5px_5px_10px_#b45309,-5px_-5px_10px_#fcd34d];
+}
+
+.neumorphic-btn-secondary:hover {
+  @apply shadow-[2px_2px_5px_#b45309,-2px_-2px_5px_#fcd34d];
+}
+
+.neumorphic-card {
+  @apply rounded-xl bg-[var(--bg)] shadow-[8px_8px_16px_var(--shadow-dark),-8px_-8px_16px_var(--shadow-light)] transition-all duration-300 relative overflow-hidden;
+}
+
+.neumorphic-card:hover {
+  @apply translate-y-[-5px] shadow-[12px_12px_24px_var(--shadow-dark),-12px_-12px_24px_var(--shadow-light)];
+}
+
+.neumorphic-card::before {
+  content: '';
+  @apply absolute top-0 left-0 w-1.5 h-full bg-[var(--primary)] transition-all duration-300;
+}
+
+.neumorphic-card:hover::before {
+  @apply w-2 bg-[var(--secondary)];
+}
+
+.neumorphic-input {
+  @apply rounded-xl bg-[var(--bg)] shadow-[inset_5px_5px_10px_var(--shadow-dark),inset_-5px_-5px_10px_var(--shadow-light)] transition-shadow duration-300 w-full p-3 rounded-lg focus:outline-none focus:ring-2 focus:ring-[var(--primary)] focus:shadow-[inset_3px_3px_6px_var(--shadow-dark),inset_-3px_-3px_6px_var(--shadow-light)] transition-all duration-300 border-none;
+}
+
+.neumorphic-input::placeholder {
+  @apply text-gray-400 dark:text-gray-500;
+}
+
+.neumorphic-nav {
+  @apply rounded-xl bg-[var(--bg)] shadow-[4px_4px_8px_var(--shadow-dark),-4px_-4px_8px_var(--shadow-light)];
+}
+
+.nav-link {
+  @apply relative transition-all duration-300;
+}
+
+.nav-link::after {
+  content: '';
+  @apply absolute w-0 h-0.5 bottom-[-3px] left-0 bg-[var(--secondary)] transition-[width] duration-300;
+}
+
+.nav-link:hover::after {
+  @apply w-full;
+}
+
+.active-nav {
+  @apply text-[var(--primary)] font-semibold;
+}
+
+.active-nav::after {
+  @apply w-full bg-[var(--secondary)];
+}
+
+.category-tag {
+  @apply rounded-sm bg-[var(--primary)] text-white text-xs font-medium shadow-[3px_3px_6px_#1d4ed8,-3px_-3px_6px_#93c5fd] transition-all duration-300;
+}
+
+.category-tag:hover {
+  @apply bg-[var(--secondary)] shadow-[#a9a9a9];
+}
+
+.date-badge {
+  @apply rounded-sm bg-[var(--secondary)] text-white text-xs font-bold  transition-all duration-300;
+}
+
+.popular-item {
+  @apply transition-all duration-300 relative;
+}
+
+.popular-item::before {
+  content: '';
+  @apply absolute bottom-0 left-0 w-0 h-0.5 bg-[var(--secondary)] transition-all duration-300;
+}
+
+.popular-item:hover {
+  @apply translate-x-1;
+}
+
+.popular-item:hover::before {
+  @apply w-full;
+}
+
+.popular-rank {
+  @apply text-[var(--primary)] font-bold transition-all duration-300;
+}
+
+.popular-item:hover .popular-rank {
+  @apply text-[var(--secondary)] scale-110;
+}
+
+.social-icon {
+  @apply rounded-full bg-[var(--bg)] shadow-[4px_4px_8px_var(--shadow-dark),-4px_-4px_8px_var(--shadow-light)] text-[var(--primary)] transition-all duration-300 flex items-center justify-center w-10 h-10;
+}
+
+.social-icon:hover {
+  @apply text-[var(--secondary)] -translate-y-1 shadow-[6px_6px_12px_var(--shadow-dark),-6px_-6px_12px_var(--shadow-light)];
+}
+
+.social-icon:active {
+  @apply shadow-[inset_2px_2px_4px_var(--shadow-dark),inset_-2px_-2px_4px_var(--shadow-light)];
+}
+
+/* wahuuuuu */
+@keyframes marquee {
+  0% {
+    transform: translateX(100%);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-marquee {
+  display: inline-block;
+  animation: marquee 25s linear infinite;
+}
+
+.animate-marquee:hover{
+  animation-play-state: paused;
+}
+
+
+
+
+
+
+/* Admin Panel Components */
+.glass-card {
+  @apply bg-[rgba(255,255,255,0.2)] backdrop-blur-lg rounded-3xl shadow-[8px_8px_15px_rgba(163,177,198,0.6),-8px_-8px_15px_rgba(255,255,255,0.6)] border border-[rgba(255,255,255,0.18)];
+}
+
+.glassmorphic-btn {
+  @apply rounded-xl bg-[linear-gradient(145deg,#ffffff,#e6e9ed)] shadow-[5px_5px_10px_#d1d9e6,-5px_-5px_10px_#ffffff] transition-all duration-300 text-[#333];
+}
+
+.glassmorphic-btn:hover {
+  @apply shadow-[inset_2px_2px_5px_#d1d9e6,inset_-2px_-2px_5px_#ffffff];
+}
+
+.glassmorphic-btn-primary {
+  @apply bg-[linear-gradient(145deg,#034bad,#02307a)] text-white shadow-[5px_5px_10px_#d1d9e6,-5px_-5px_10px_#ffffff];
+}
+
+.glassmorphic-btn-primary:hover {
+  @apply bg-[linear-gradient(145deg,#02307a,#034bad)] shadow-[inset_2px_2px_5px_rgba(0,0,0,0.2),inset_-2px_-2px_5px_rgba(255,255,255,0.2)];
+}
+
+.glassmorphic-btn-accent {
+  @apply bg-[linear-gradient(145deg,#ffde5b,#ffd700)] text-[#333] shadow-[5px_5px_10px_#d1d9e6,-5px_-5px_10px_#ffffff];
+}
+
+.glassmorphic-btn-accent:hover {
+  @apply bg-[linear-gradient(145deg,#ffd700,#ffde5b)] shadow-[inset_2px_2px_5px_rgba(0,0,0,0.1),inset_-2px_-2px_5px_rgba(255,255,255,0.2)];
+}
+
+.sidebar {
+  @apply bg-[rgba(255,255,255,0.3)] backdrop-blur-lg shadow-[8px_8px_15px_rgba(163,177,198,0.6),-8px_-8px_15px_rgba(255,255,255,0.6)] border-r border-[rgba(255,255,255,0.18)];
+}
+
+.sidebar-item:hover {
+  @apply bg-[rgba(255,255,255,0.4)] scale-105;
+}
+
+.sidebar-item.active {
+  @apply bg-[rgba(3,75,173,0.2)] border-l-4 border-[var(--admin-primary)];
+}
+
+/* EasyMDE Styles for Admin Panel */
+.admin-panel .EasyMDEContainer .CodeMirror {
+  @apply text-[#333] bg-[#f8f9fa] border border-[#d1d5db] rounded-b-lg;
+}
+
+.admin-panel .EasyMDEContainer .CodeMirror-cursor {
+  @apply border-l-[#333];
+}
+
+.admin-panel .EasyMDEContainer .editor-toolbar {
+  @apply bg-[rgba(255,255,255,0.8)] rounded-t-lg border-none;
+}
+
+.admin-panel .EasyMDEContainer .editor-toolbar a {
+  @apply text-[#2563eb];
+}
+
+.admin-panel .EasyMDEContainer .editor-toolbar a.active,
+.admin-panel .EasyMDEContainer .editor-toolbar a:hover {
+  @apply bg-[#e5e7eb] border-[#d1d5db];
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+  from { transform: translateX(-20px); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@keyframes floating {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+  100% { transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.animate-slideIn {
+  animation: slideIn 0.4s ease-out;
+}
+
+.animate-float {
+  animation: floating 3s ease-in-out infinite;
+}
+
+.animate-pulse {
+  animation: pulse 3s ease-in-out infinite;
+}
+
+/* Utility Classes */
+.text-primary {
+  color: var(--primary);
+}
+
+.bg-primary {
+  background-color: var(--primary);
+}
+
+.text-secondary {
+  color: var(--secondary);
+}
+
+.bg-secondary {
+  background-color: var(--secondary);
+}
+
+.text-admin-primary {
+  color: var(--admin-primary);
+}
+
+.bg-admin-primary {
+  background-color: var(--admin-primary);
+}
+
+.text-admin-accent {
+  color: var(--admin-accent);
+}
+
+.bg-admin-accent {
+  background-color: var(--admin-accent);
+}
+
+.border-primary {
+  border-color: var(--primary);
+}
+
+.border-secondary {
+  border-color: var(--secondary);
+}
+
+.border-admin-primary {
+  border-color: var(--admin-primary);
+}
+
+.border-admin-accent {
+  border-color: var(--admin-accent);
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  @apply w-2 h-2;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-black/5;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-[var(--primary)] rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-[var(--secondary)];
+}
+
+/* Dark Mode Overrides */
+.dark .category-tag {
+  @apply bg-[var(--secondary)] text-gray-900;
+}
+
+.dark .date-badge {
+  @apply bg-[var(--primary)] text-white;
+}
+
+.dark .social-icon {
+  @apply bg-[var(--bg)] text-[var(--secondary)];
+}
+
+.dark .neumorphic-btn:hover {
+  @apply shadow-[3px_3px_6px_var(--shadow-dark),-3px_-3px_6px_var(--shadow-light)];
+}
+
+.dark .neumorphic-btn:active {
+  /* @apply shadow-[inset_2px_2px_5px_var(--shadow-dark),inset_-2px_-2px_5px_var(--shadow-light)]; */
+}
+
+/* Scrollbar Hide */
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+
+/* Scroll Snap */
+.snap-x {
+  scroll-snap-type: x mandatory;
+}
+
+.snap-start {
+  scroll-snap-align: start;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 1024px) {
+  .sticky-sidebar {
+    @apply static;
+  }
+}
+
+/* Add this @font-face rule - Adjust path as needed */
+@font-face {
+  font-family: 'Tiempos Text';
+  src: url('/fonts/TiemposText-Regular.woff2') format('woff2'), /* Example path */
+       url('/fonts/TiemposText-Regular.woff') format('woff');   /* Example path */
+  font-weight: 400; /* Regular weight */
+  font-style: normal;
+  font-display: swap; /* Improves perceived performance */
+}
+
+:root {
+  --foreground-rgb: 0, 0, 0;
+  --background-start-rgb: 248, 250, 252; /* Light gray */
+  --background-end-rgb: 255, 255, 255;
+  --primary: #013f6e; /* Blue-500 */
+  --secondary: #a9a9a9; /* Amber-500 */
+  --text: #1e293b; /* Slate-800 */
+  --neumorph-shadow-light: -6px -6px 12px rgba(255, 255, 255, 0.8);
+  --neumorph-shadow-dark: 6px 6px 12px rgba(0, 0, 0, 0.1);
+  --neumorph-shadow-inset-light: inset -4px -4px 8px rgba(255, 255, 255, 0.8);
+  --neumorph-shadow-inset-dark: inset 4px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+body {
+  color: rgb(var(--foreground-rgb));
+  background: linear-gradient(
+      to bottom,
+      transparent,
+      rgb(var(--background-end-rgb))
+    )
+    rgb(var(--background-start-rgb));
+  font-family: 'Tiempos Text', serif; /* Apply Tiempos Text here, fallback to serif */
+}
+
+/* ... rest of your globals.css ... */
