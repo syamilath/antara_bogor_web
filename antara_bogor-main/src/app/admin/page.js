@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter, usePathname } from 'next/navigation'; // Ensure useRouter is imported
 import Link from 'next/link';
@@ -185,25 +185,103 @@ function useArticleForm() {
 }
 
 // Sidebar Component
-export function Sidebar({ isMobile = false, onClose }) {
+export function Sidebar({ isMobile = false, onClose, isCollapsed = false, toggleCollapse }) {
   const pathname = usePathname();
-  const router = useRouter(); // <-- Add useRouter hook
+  const router = useRouter();
+  const [sidebarData, setSidebarData] = useState({
+    categories: [],
+    todaysArticles: [],
+    loading: false,
+    selectedCategory: 'all'
+  });
+  
+  // Lazy loading data only when expanded
+  useEffect(() => {
+    let isMounted = true;
+    
+    const fetchData = async () => {
+      // Only fetch data if sidebar is expanded and not in mobile view
+      if (isCollapsed || isMobile) return;
+      
+      setSidebarData(prev => ({ ...prev, loading: true }));
+      
+      try {
+        // Use a single API call to get both categories and articles
+        const [categoriesRes, articlesRes] = await Promise.all([
+          fetch('/api/categories', { cache: 'no-store' }),
+          fetch('/api/articles', { cache: 'no-store' })
+        ]);
+        
+        if (!isMounted) return;
+        
+        // Process categories
+        let categories = [];
+        if (categoriesRes.ok) {
+          const data = await categoriesRes.json();
+          categories = Array.isArray(data) ? data : [];
+        }
+        
+        // Process articles - only if needed
+        let todaysArticles = [];
+        if (articlesRes.ok) {
+          const articlesData = await articlesRes.json();
+          const today = new Date();
+          
+          // Filter for today's articles
+          todaysArticles = articlesData
+            .filter(article => {
+              const articleDate = new Date(article.created_at);
+              return (
+                articleDate.getDate() === today.getDate() &&
+                articleDate.getMonth() === today.getMonth() &&
+                articleDate.getFullYear() === today.getFullYear()
+              );
+            })
+            .sort((a, b) => (b.views || 0) - (a.views || 0))
+            .slice(0, 5); // Only keep top 5 to reduce rendering
+        }
+        
+        if (isMounted) {
+          setSidebarData({
+            categories,
+            todaysArticles,
+            loading: false,
+            selectedCategory: 'all'
+          });
+        }
+      } catch (error) {
+        console.error('Error fetching sidebar data:', error);
+        if (isMounted) {
+          setSidebarData(prev => ({ ...prev, loading: false }));
+        }
+      }
+    };
+    
+    fetchData();
+    
+    return () => {
+      isMounted = false;
+    };
+  }, [isCollapsed, isMobile]);
+  
+  const handleCategoryClick = useCallback((categorySlug) => {
+    setSidebarData(prev => ({ ...prev, selectedCategory: categorySlug }));
+  }, []);
 
-  const items = [
+  // Memoize navigation items to prevent re-renders
+  const items = useMemo(() => [
     { name: 'Dashboard', href: '/admin/dashboard', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
     { name: 'Create News', href: '/admin', icon: 'M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z' },
     { name: 'Manage News', href: '/admin/manage-news', icon: 'M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z' },
     { name: 'Settings', href: '/admin/settings', icon: 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z' },
-  ];
+  ], []);
 
-  // <-- Add Logout Handler -->
-  const handleLogout = async () => {
+  // Logout Handler - memoized to prevent re-creation
+  const handleLogout = useCallback(async () => {
     try {
-      const response = await fetch('/api/auth/logout', { method: 'POST' }); // <-- This is the API call
+      const response = await fetch('/api/auth/logout', { method: 'POST' });
       if (response.ok) {
-        // Optional: Clear any other client-side state if needed
-        // localStorage.removeItem('someOtherItem');
-        router.push('/login'); // Redirect to login page
+        router.push('/login');
       } else {
         console.error('Logout failed:', await response.text());
         alert('Logout failed. Please try again.');
@@ -212,23 +290,44 @@ export function Sidebar({ isMobile = false, onClose }) {
       console.error('Error during logout:', error);
       alert('An error occurred during logout.');
     }
-  };
-  // <-- End Logout Handler -->
+  }, [router]);
 
+  // Simplified date formatter
+  const getFormattedDate = useCallback((dateString) => {
+    if (!dateString) return 'Unknown';
+    const date = new Date(dateString);
+    return !isNaN(date.getTime()) ? date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'Invalid';
+  }, []);
+
+  // Use lighter styling with fewer shadows and effects
   return (
-    <div className={`${isMobile ? 'p-4 h-full bg-white' : 'w-64 min-h-screen bg-gray-50 shadow-lg flex flex-col'} transition-all duration-300`}>
-      <div className="flex items-center justify-between mb-8 mt-4 px-4"> {/* Added px-4 for consistency */}
+    <div className={`${isMobile ? 'p-4 h-full' : `${isCollapsed ? 'w-16' : 'w-64'} min-h-screen flex flex-col`} transition-all duration-300 bg-[#f0f4f8] shadow-md`}>
+      <div className="flex items-center justify-between mb-6 mt-4 px-4">
         <div className="flex items-center">
-          {/* Logo/Brand */}
-          <div className="neumorphic p-2 mr-3 pulse rounded-full bg-blue-500 text-white">
+          {/* Logo/Brand - simplified */}
+          <div className="bg-[#013f6e] text-white flex items-center justify-center w-10 h-10 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
             </svg>
           </div>
-          <span className="text-xl font-bold text-gray-700">Admin Panel</span>
+          {!isCollapsed && <span className="text-xl font-bold text-[#013f6e] ml-3">ANTARA<span className="text-[#a9a9a9]">BOGOR</span></span>}
         </div>
+        
+        {/* Collapse toggle button - simplified */}
+        {!isMobile && (
+          <button 
+            onClick={toggleCollapse} 
+            className="text-[#013f6e] hover:text-[#02307a] transition-all duration-200 p-2 rounded-full"
+            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d={isCollapsed ? "M13 5l7 7-7 7M5 5l7 7-7 7" : "M11 19l-7-7 7-7M19 19l-7-7 7-7"} />
+            </svg>
+          </button>
+        )}
+        
         {isMobile && (
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
+          <button onClick={onClose} className="text-[#013f6e] hover:text-[#02307a] p-2 rounded-full">
             <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
             </svg>
@@ -236,39 +335,123 @@ export function Sidebar({ isMobile = false, onClose }) {
         )}
       </div>
 
-      <nav className="flex-grow px-4"> {/* Added px-4 */}
+      {/* Navigation Menu - simplified */}
+      <nav className="flex-grow px-4 mb-6">
         <ul>
           {items.map((item) => (
             <li key={item.name} className="mb-2">
               <Link
                 href={item.href}
                 onClick={isMobile ? onClose : undefined}
-                className={`flex items-center py-2 px-3 rounded-lg transition-all duration-200 ${
+                className={`flex items-center py-2 ${isCollapsed ? 'px-2 justify-center' : 'px-3'} rounded-lg transition-all duration-200 ${
                   pathname === item.href
-                    ? 'neumorphic-inset bg-blue-100 text-blue-700 font-semibold'
-                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
+                    ? 'bg-blue-50 text-[#013f6e] font-semibold shadow-sm'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-[#013f6e]'
                 }`}
+                title={isCollapsed ? item.name : ''}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${isCollapsed ? '' : 'mr-3'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
                   <path strokeLinecap="round" strokeLinejoin="round" d={item.icon} />
                 </svg>
-                {item.name}
+                {!isCollapsed && item.name}
               </Link>
             </li>
           ))}
         </ul>
       </nav>
 
-      {/* Logout Button Area */}
-      <div className="mt-auto p-4"> {/* Pushes logout to the bottom */}
+      {/* Categories Section - Only load when expanded and needed */}
+      {!isCollapsed && sidebarData.categories.length > 0 && (
+        <div className="px-4 mb-4">
+          <div className="bg-white p-3 rounded-lg shadow-sm">
+            <h3 className="text-base font-bold mb-2 text-[#013f6e] flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z" />
+              </svg>
+              Categories
+            </h3>
+            {sidebarData.loading ? (
+              <div className="flex justify-center py-2">
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-[#013f6e]"></div>
+              </div>
+            ) : (
+              <ul className="space-y-1 max-h-32 overflow-y-auto">
+                <li>
+                  <button
+                    onClick={() => handleCategoryClick('all')}
+                    className={`w-full text-left flex justify-between items-center p-1.5 rounded-md hover:bg-gray-100 transition-colors text-sm ${sidebarData.selectedCategory === 'all' ? 'bg-blue-50 text-[#013f6e] font-semibold' : 'text-gray-700'}`}
+                  >
+                    <span>All Categories</span>
+                  </button>
+                </li>
+                {sidebarData.categories.map((category) => (
+                  <li key={category.id}>
+                    <button
+                      onClick={() => handleCategoryClick(category.slug)}
+                      className={`w-full text-left flex justify-between items-center p-1.5 rounded-md hover:bg-gray-100 transition-colors text-sm ${sidebarData.selectedCategory === category.slug ? 'bg-blue-50 text-[#013f6e] font-semibold' : 'text-gray-700'}`}
+                    >
+                      <span>{category.name}</span>
+                      <span className={`text-xs px-1.5 py-0.5 rounded-full ${sidebarData.selectedCategory === category.slug ? 'bg-[#013f6e] text-white' : 'bg-gray-200 text-gray-600'}`}>
+                        {category.article_count || 0}
+                      </span>
+                    </button>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Today's Articles Section - Only load when expanded and needed */}
+      {!isCollapsed && sidebarData.todaysArticles.length > 0 && (
+        <div className="px-4 mb-4">
+          <div className="bg-white p-3 rounded-lg shadow-sm">
+            <h3 className="text-base font-bold mb-2 text-[#013f6e] flex items-center">
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+              </svg>
+              Today's Articles
+            </h3>
+            <div className="space-y-2 max-h-40 overflow-y-auto">
+              {sidebarData.todaysArticles.map((article, index) => (
+                <Link
+                  key={article.id}
+                  href={`/article/${article.slug}`}
+                  className="block pb-1 border-b border-gray-100 last:border-0"
+                  target="_blank"
+                >
+                  <div className="flex items-start">
+                    <div className="bg-gray-100 w-5 h-5 rounded-full flex items-center justify-center mr-2 flex-shrink-0">
+                      <span className="text-xs font-medium">{index + 1}</span>
+                    </div>
+                    <div>
+                      <h4 className="text-xs font-medium hover:text-[#013f6e] transition-colors line-clamp-1">
+                        {article.title}
+                      </h4>
+                      <div className="text-xs text-gray-500">
+                        {getFormattedDate(article.created_at)}
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Logout Button Area - simplified */}
+      <div className="mt-auto p-4">
         <button
           onClick={handleLogout}
-          className="flex items-center w-full py-2 px-3 rounded-lg text-gray-600 hover:bg-red-100 hover:text-red-700 transition-all duration-200 neumorphic-button-secondary" // Added neumorphic style
+          className={`flex items-center ${isCollapsed ? 'justify-center' : 'w-full'} py-2 px-3 rounded-lg text-gray-600 hover:bg-red-100 hover:text-red-700 transition-all duration-200`}
+          title={isCollapsed ? "Logout" : ""}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+          <svg xmlns="http://www.w3.org/2000/svg" className={`h-5 w-5 ${isCollapsed ? '' : 'mr-3'}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
             <path strokeLinecap="round" strokeLinejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
           </svg>
-          Logout
+          {!isCollapsed && "Logout"}
         </button>
       </div>
     </div>
@@ -446,6 +629,8 @@ function PublishSettings({ isPublishing, handlePublish, handleSaveDraft, publish
 export default function AdminPanel() {
   const router = useRouter();
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [isDesktopSidebarCollapsed, setIsDesktopSidebarCollapsed] = useState(false);
+  
   const {
     title,
     setTitle,
@@ -490,6 +675,10 @@ export default function AdminPanel() {
     }
   };
 
+  const toggleDesktopSidebar = () => {
+    setIsDesktopSidebarCollapsed(!isDesktopSidebarCollapsed);
+  };
+
   if (!user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100">
@@ -507,8 +696,8 @@ export default function AdminPanel() {
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Desktop Sidebar */}
-      <div className="hidden md:block">
-        <Sidebar />
+      <div className={`hidden md:block transition-all duration-300 ${isDesktopSidebarCollapsed ? 'w-16' : 'w-64'}`}>
+        <Sidebar isCollapsed={isDesktopSidebarCollapsed} toggleCollapse={toggleDesktopSidebar} />
       </div>
 
       {/* Mobile Sidebar Toggle */}
@@ -526,14 +715,14 @@ export default function AdminPanel() {
       </div>
 
       {/* Mobile Sidebar */}
-      <div className={`fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden transition-opacity ${isMobileSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
+      <div className={`fixed inset-0 bg-black/50 z-40 md:hidden transition-opacity ${isMobileSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div className={`absolute left-0 top-0 h-full w-64 transform ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out`}>
           <Sidebar isMobile={true} onClose={toggleMobileSidebar} />
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto">
+      <div className={`flex-1 p-4 sm:p-6 md:p-8 overflow-y-auto transition-all duration-300 ${isDesktopSidebarCollapsed ? 'md:ml-16' : 'md:ml-0'}`}>
         <div className="max-w-5xl mx-auto">
           <form onSubmit={handlePublish} noValidate>
             <div className="flex justify-between items-center mb-6">
@@ -574,7 +763,7 @@ export default function AdminPanel() {
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
                 {/* Article Title */}
-                <div className="bg-white bg-opacity-80 backdrop-blur-md p-6 rounded-lg shadow-lg transition-all duration-300 animate-fadeIn">
+                <div className="bg-white/80 backdrop-blur-md p-6 rounded-lg shadow-lg transition-all duration-300 animate-fadeIn">
                   <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">
                     Article Title
                   </label>

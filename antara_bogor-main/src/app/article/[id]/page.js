@@ -5,14 +5,7 @@ import Head from 'next/head';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import ArticleSidebar from '@/app/components/ArticleSidebar';
-import { fallbackCategories } from '@/app/page';
    
-
-console.log(fallbackCategories);
-
-
-
-
 const getFormattedDate = (dateString, options = { year: 'numeric', month: 'long', day: 'numeric' }) => {
   if (!dateString) return 'Unknown Date';
   const date = new Date(dateString);
@@ -22,8 +15,27 @@ const getFormattedDate = (dateString, options = { year: 'numeric', month: 'long'
 export default function ArticlePage() {
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [sidebarVisible, setSidebarVisible] = useState(false);
   const params = useParams();
   const { id: slug } = params;
+
+  // Toggle sidebar visibility
+  const toggleSidebar = () => {
+    setSidebarVisible(!sidebarVisible);
+  };
+
+  // Close sidebar
+  const closeSidebar = () => {
+    setSidebarVisible(false);
+  };
+
+  // Handle category selection
+  const handleCategorySelect = (category) => {
+    setSelectedCategory(category);
+    // You can add navigation logic here if needed
+    // For example: router.push(`/?category=${category}`);
+  };
 
   useEffect(() => {
     const animateOnScroll = () => {
@@ -122,6 +134,29 @@ export default function ArticlePage() {
     if (slug) fetchArticle();
   }, [slug]);
 
+  // Close sidebar when clicking outside on mobile
+  useEffect(() => {
+    const handleResize = () => {
+      // Auto-show sidebar on desktop
+      if (window.innerWidth >= 768) { // md breakpoint
+        setSidebarVisible(true);
+      } else {
+        setSidebarVisible(false);
+      }
+    };
+
+    // Set initial state based on screen size
+    handleResize();
+
+    // Add event listener
+    window.addEventListener('resize', handleResize);
+
+    // Cleanup
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   return (
     <>
       <Head>
@@ -134,106 +169,104 @@ export default function ArticlePage() {
 
       {/* Floating Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-10 w-24 h-24 bg-yellow-400 rounded-full opacity-20 blur-2xl animate-pulse"></div>
-        <div className="absolute top-1/3 right-16 w-32 h-32 bg-blue-500 rounded-full opacity-20 blur-2xl animate-pulse delay-200"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-20 h-20 bg-yellow-400 rounded-full opacity-20 blur-2xl animate-pulse delay-500"></div>
+        <div className="absolute top-1/4 left-10 w-24 h-24 bg-[var(--secondary)] rounded-full opacity-20 blur-2xl animate-pulse"></div>
+        <div className="absolute top-1/3 right-16 w-32 h-32 bg-[var(--primary)] rounded-full opacity-20 blur-2xl animate-pulse delay-200"></div>
+        <div className="absolute bottom-1/4 left-1/3 w-20 h-20 bg-[var(--secondary)] rounded-full opacity-20 blur-2xl animate-pulse delay-500"></div>
       </div>
 
-       <ArticleSidebar
-      categories={fallbackCategories}
-      selectedCategory={article}
-      onSelectCategory={setSelectedCategory}
-    />
+      {/* Hamburger Menu Button - Fixed position for mobile */}
+      <button 
+        onClick={toggleSidebar}
+        className="hamburger-btn neumorphic-btn"
+        aria-label="Toggle sidebar"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6 text-[var(--text)]" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
 
-      <main className="container mx-auto px-4 py-12 relative z-10">
-        {loading ? (
-          <div className="text-center text-gray-500 text-lg animate-pulse">Loading article...</div>
-        ) : article ? (
-          <article className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-200 hover:shadow-2xl transition-transform transform hover:-translate-y-1 duration-500">
-            <div className="p-8">
-              <div className="flex flex-wrap gap-3 items-center mb-6">
-                <span className="bg-blue-600 text-white text-xs font-semibold uppercase px-3 py-1 rounded-full">{article.category_name || 'Unknown'}</span>
-                {/* <span className="text-gray-500 text-sm">{getFormattedDate(article.published_at)}</span> */}
+      {/* Sidebar with visibility toggle */}
+      <div className="flex flex-col md:flex-row min-h-screen bg-[var(--bg)]">
+        <ArticleSidebar
+          selectedCategory={selectedCategory}
+          onSelectCategory={handleCategorySelect}
+          isVisible={sidebarVisible}
+          onClose={closeSidebar}
+        />
+
+        <main className="container mx-auto px-4 py-12 relative z-10 flex-1">
+          {loading ? (
+            <div className="text-center text-[var(--text)]/60 text-lg animate-pulse">Loading article...</div>
+          ) : article ? (
+            <article className="neumorphic-card overflow-hidden border border-gray-200/20 hover:shadow-2xl transition-transform transform hover:-translate-y-1 duration-500">
+              {/* Article Header */}
+              <div className="p-8">
+                <div className="flex flex-wrap gap-3 items-center mb-6">
+                  <span className="category-tag px-4 py-2 text-sm font-semibold">
+                    {article.category_name || 'Unknown'}
+                  </span>
+                  <span className="text-[var(--text)]/60 text-sm">
+                    {getFormattedDate(article.created_at)}
+                  </span>
+                </div>
+                <h1 className="text-4xl md:text-5xl font-bold leading-tight text-[var(--text)] mb-6">
+                  {article.title}
+                </h1>
+                <div className="flex items-center gap-4 text-[var(--text)]/60 text-sm">
+                  <div className="neumorphic w-12 h-12 rounded-full overflow-hidden">
+                    <img 
+                      src="https://randomuser.me/api/portraits/women/44.jpg" 
+                      alt="Author" 
+                      className="w-full h-full object-cover" 
+                    />
+                  </div>
+                  <span>By {article.author_name || 'Unknown'}</span>
+                </div>
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold leading-tight text-gray-900 mb-4">{article.title}</h1>
-              <div className="flex items-center gap-4 text-gray-500 text-sm">
-                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Author" className="w-12 h-12 rounded-full object-cover border-2 border-gray-300" />
-                <span>By {article.author_name || 'Unknown'}</span>
+              
+              {/* Article Image */}
+              {article.image_url && (
+                <div className="px-8">
+                  <div className="neumorphic-inset rounded-xl overflow-hidden">
+                    <img
+                      src={article.image_url}
+                      alt={article.title}
+                      className="w-full h-auto object-cover"
+                    />
+                  </div>
+                </div>
+              )}
+              
+              {/* Article Content */}
+              <div className="p-8 text-[var(--text)] leading-relaxed text-lg space-y-6">
+                {article.content.split('\n').map((paragraph, index) => (
+                  <p key={index} className="mb-4">{paragraph}</p>
+                ))}
               </div>
-            </div>
-            <div>
-<img
-  src={article.image_url || 'https://via.placeholder.com/800x400?text=No+Image'}
-  alt={article.title}
-  className="w-full h-auto object-contain"
-/>
-
-            </div>
-            <div className="p-8 text-gray-800 leading-relaxed text-lg space-y-6">
-              {article.content.split('\n').map((paragraph, index) => <p key={index}>{paragraph}</p>)}
-            </div>
-            <div className="p-8 text-center border-t border-gray-200">
-              <Link href="/" className="inline-block bg-blue-600 text-white px-6 py-3 rounded-full font-semibold shadow-md hover:bg-blue-700 transition">← Back to Home</Link>
-            </div>
-          </article>
-        ) : (
-          <div className="text-center text-gray-500 text-lg">Article not found.</div>
-        )}
-      </main>
-
-      <footer className="py-16 mt-16 bg-slate-50 relative z-10">
-        <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 px-4">
-          <div>
-            <h3 className="text-2xl font-bold flex items-center gap-3 text-[#013f6e] mb-4">
-              <img src="/uploads/logo-removebg-preview.png" alt="Logo" className="w-14" />
-              ANTARABOGOR
-            </h3>
-            <p className="text-gray-600 mb-6">Delivering news with a retro-modern twist since 2023. Your trusted source for accurate and timely information from around the globe.</p>
-            <div className="flex gap-4">
-              {['facebook-f', 'twitter', 'instagram', 'linkedin-in'].map((icon, i) => (
-                <Link key={i} href="#" className="bg-gray-200 hover:bg-blue-600 hover:text-white transition p-3 rounded-full text-gray-600">
-                  <i className={`fab fa-${icon}`}></i>
+              
+              {/* Article Footer */}
+              <div className="p-8 text-center border-t border-[var(--text)]/10">
+                <Link 
+                  href="/" 
+                  className="neumorphic-btn neumorphic-btn-primary inline-flex items-center gap-2 px-6 py-3 font-semibold transition-all duration-300"
+                >
+                  <i className="fas fa-arrow-left"></i>
+                  Back to Home
                 </Link>
-              ))}
-            </div>
-          </div>
-          <div>
-            <h4 className="text-lg font-semibold mb-4 border-b border-blue-600 pb-2">Quick Links</h4>
-            <ul className="space-y-3">
-              {['About Us', 'Contact', 'Advertise', 'Careers', 'Privacy Policy'].map((link, i) => (
-                <li key={i}>
-                  <Link href="#" className="flex items-center gap-2 text-gray-600 hover:text-yellow-500 transition">
-                    <i className="fas fa-chevron-right text-xs text-blue-600"></i> {link}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-lg font-semibold mb-4 border-b border-blue-600 pb-2">Categories</h4>
-            <ul className="space-y-3">
-              {['Politics', 'Technology', 'Business', 'Sports', 'Entertainment'].map((category, i) => (
-                <li key={i}>
-                  <Link href={`/category/${category.toLowerCase()}`} className="flex items-center gap-2 text-gray-600 hover:text-yellow-500 transition">
-                    <i className="fas fa-chevron-right text-xs text-blue-600"></i> {category}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-          <div>
-            <h4 className="text-lg font-semibold mb-4 border-b border-blue-600 pb-2">Contact Us</h4>
-            <ul className="space-y-4 text-gray-600">
-              <li className="flex items-start gap-3">
-                <i className="fas fa-map-marker-alt text-blue-600"></i> <span>123 Retro Street, News City, NC 12345</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <i className="fas fa-phone-alt text-blue-600"></i> <span>(123) 456-7890</span>
-              </li>
-              <li className="flex items-center gap-3">
-                <i className="fas fa-envelope text-blue-600"></i> <span>info@retronews.com</span>
-              </li>
-            </ul>
+              </div>
+            </article>
+          ) : (
+            <div className="text-center text-[var(--text)]/60 text-lg">Article not found.</div>
+          )}
+        </main>
+      </div>
+
+      {/* Footer */}
+      <footer className="py-16 mt-16 bg-[var(--bg)] relative z-10">
+        <div className="container mx-auto px-4 text-center">
+          <div className="neumorphic p-8 rounded-2xl">
+            <h3 className="text-2xl font-bold text-[var(--text)] mb-4">ANTARA<span className="text-[var(--secondary)]">BOGOR</span></h3>
+            <p className="text-[var(--text)]/60">Your trusted source for local news and information</p>
           </div>
         </div>
       </footer>

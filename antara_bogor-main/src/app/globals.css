@@ -482,4 +482,31 @@ body {
   font-family: 'Tiempos Text', serif; /* Apply Tiempos Text here, fallback to serif */
 }
 
-/* ... rest of your globals.css ... */
+/* Add these styles at the end of your globals.css file */
+
+/* Sidebar transitions */
+.sidebar-transition {
+  transition: transform 0.3s ease-in-out;
+}
+
+/* Hamburger button styles */
+.hamburger-btn {
+  @apply fixed top-4 left-4 z-40 md:hidden bg-white p-2 rounded-full shadow-lg;
+  transition: all 0.3s ease;
+}
+
+.hamburger-btn:hover {
+  @apply shadow-md bg-gray-50;
+}
+
+/* Overlay styles */
+.sidebar-overlay {
+  @apply fixed inset-0 bg-black/50 z-20 transition-opacity duration-300 md:hidden;
+}
+
+/* Mobile sidebar scrolling */
+.mobile-sidebar {
+  @apply overflow-y-auto;
+  max-height: 100vh;
+  -webkit-overflow-scrolling: touch;
+}
