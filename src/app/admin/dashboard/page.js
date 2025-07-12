@@ -1,9 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-// Assuming Sidebar is in a layout component
-// import Sidebar from '../Sidebar'; // Adjust path if needed
-import { Sidebar } from '../page'; // This line should now work
+import Sidebar from '../components/Sidebar.jsx';
 
 // Placeholder data - replace with actual data fetching
 const placeholderStats = {

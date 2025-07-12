@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import 'easymde/dist/easymde.min.css';
+import Sidebar from '../../components/Sidebar.jsx';
 
 // Dynamically import SimpleMDE to avoid SSR issues
 const SimpleMdeReact = dynamic(() => import('react-simplemde-editor'), { ssr: false });
@@ -215,6 +216,7 @@ export default function EditArticlePage() {
     return (
         <div className="flex min-h-screen bg-gray-100">
             {/* Assuming Sidebar is in a layout component */}
+            <Sidebar />
             <main className="flex-1 p-8">
                 <h1 className="text-3xl font-bold text-gray-800 mb-6">Edit Article</h1>
 
