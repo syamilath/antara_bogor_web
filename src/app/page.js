@@ -639,7 +639,7 @@ export default function RetroNews() {
                 ANTARABOGOR
               </h3>
               <p className="text-gray-600 mb-6">
-                Delivering news with a retro-modern twist since 2023. Your trusted source for accurate and timely
+                Delivering news with a retro-modern twist since 2025. Your trusted source for accurate and timely
                 information.
               </p>
               <div className="flex space-x-4">

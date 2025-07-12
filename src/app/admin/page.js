@@ -6,6 +6,7 @@ import { useRouter, usePathname } from 'next/navigation'; // Ensure useRouter is
 import Link from 'next/link';
 import 'easymde/dist/easymde.min.css';
 import Sidebar from './components/Sidebar.jsx';
+import Image from 'next/image';
 
 const EasyMDE = dynamic(() => import('react-simplemde-editor').then((mod) => mod.default), { ssr: false });
 
@@ -195,7 +196,13 @@ function ImageUpload({ image, imagePreview, handleImageChange }) {
       </label>
       <div className="relative w-full h-48 bg-gray-100 rounded-lg flex flex-col items-center justify-center overflow-hidden border-2 border-dashed border-gray-300 hover:border-blue-400 transition">
         {imagePreview ? (
-          <img src={imagePreview} alt="Selected image" className="w-full h-full object-cover" />
+          <Image
+            src={imagePreview}
+            alt="Selected image"
+            fill
+            className="object-cover"
+            style={{ width: '100%', height: '100%', position: 'absolute' }}
+          />
         ) : (
           <>
             <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
