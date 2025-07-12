@@ -93,48 +93,50 @@ export default function ManageNewsPage() {
         {error && <p className="text-red-500">Error: {error}</p>}
 
         {!loading && !error && (
-          <div className="bg-white shadow-md rounded-lg overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                {/* Ensure no whitespace directly inside the tr */}
-                <tr><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Image</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Title</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tags</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th><th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created At</th><th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th></tr>
+          <div className="bg-white shadow rounded-lg overflow-x-auto max-w-full mx-auto" style={{ maxHeight: '70vh' }}>
+            <table className="min-w-full divide-y divide-gray-200 text-sm">
+              <thead className="bg-gray-50 sticky top-0 z-10">
+                <tr>
+                  <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Image</th>
+                  <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Title</th>
+                  <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Category</th>
+                  <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Tags</th>
+                  <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Status</th>
+                  <th className="px-3 py-2 text-left font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Created</th>
+                  <th className="px-3 py-2 text-right font-semibold text-gray-500 uppercase tracking-wider whitespace-nowrap">Actions</th>
+                </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
+              <tbody className="bg-white divide-y divide-gray-100">
                 {filteredArticles.length > 0 ? filteredArticles.map((article) => (
-                  // Ensure no whitespace directly inside the tr
-                  <tr key={article.id}>
-                    <td className="px-6 py-4 whitespace-nowrap"> {/* Image Cell */}
+                  <tr key={article.id} className="hover:bg-blue-50 transition">
+                    <td className="px-3 py-2 whitespace-nowrap">
                       {article.image_url ? (
                         <Image
                           src={article.image_url}
                           alt={article.title || 'Article image'}
-                          width={64}
-                          height={40}
-                          className="h-10 w-16 object-cover rounded"
+                          width={48}
+                          height={32}
+                          className="h-8 w-12 object-cover rounded shadow-sm border"
                           unoptimized={true}
                         />
                       ) : (
-                        <div className="h-10 w-16 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">No Image</div>
+                        <div className="h-8 w-12 bg-gray-200 rounded flex items-center justify-center text-xs text-gray-500">No Image</div>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">{article.title}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{article.category_name || 'N/A'}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"> {/* <-- Add Tags Cell */}
-                      {/* Display tags, join array if it exists */}
+                    <td className="px-3 py-2 whitespace-nowrap font-medium text-gray-900 max-w-xs truncate" title={article.title}>{article.title}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-gray-600">{article.category_name || 'N/A'}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-gray-500 max-w-xs truncate" title={article.tags && article.tags.length > 0 ? article.tags.join(', ') : ''}>
                       {article.tags && article.tags.length > 0 ? article.tags.join(', ') : 'No Tags'}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{article.status}</td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500"> {/* <-- Added */}
-                      {article.created_at ? new Date(article.created_at).toLocaleDateString() : 'N/A'}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-                      <Link href={`/admin/edit-article/${article.id}`} className="text-indigo-600 hover:text-indigo-900 mr-3">Edit</Link>
-                      <button onClick={() => handleDelete(article.id)} className="text-red-600 hover:text-red-900">Delete</button>
+                    <td className="px-3 py-2 whitespace-nowrap text-gray-500">{article.status}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-gray-500">{article.created_at ? new Date(article.created_at).toLocaleDateString() : 'N/A'}</td>
+                    <td className="px-3 py-2 whitespace-nowrap text-right">
+                      <Link href={`/admin/edit-article/${article.id}`} className="text-blue-600 hover:text-blue-800 font-semibold px-2 py-1 rounded transition">Edit</Link>
+                      <button onClick={() => handleDelete(article.id)} className="text-red-500 hover:text-red-700 font-semibold px-2 py-1 rounded transition">Delete</button>
                     </td>
                   </tr>
                 )) : (
-                  // Ensure no whitespace directly inside the tr
-                  <tr><td colSpan="7" className="px-6 py-4 text-center text-sm text-gray-500">No articles found.</td></tr>
+                  <tr><td colSpan="7" className="px-3 py-4 text-center text-gray-400">No articles found.</td></tr>
                 )}
               </tbody>
             </table>

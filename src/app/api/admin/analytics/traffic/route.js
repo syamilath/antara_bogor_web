@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { cookies } from 'next/headers';
 import jwt from 'jsonwebtoken';
+import { query } from '../../../../../lib/db';
 
 // --- JWT Secret (should match your auth routes) ---
 const JWT_SECRET = process.env.JWT_SECRET || 'YOUR_VERY_SECRET_KEY_REPLACE_ME';
@@ -27,39 +28,54 @@ export async function GET(request) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // --- Placeholder Data ---
-    const placeholderStats = {
-        totalVisits: Math.floor(Math.random() * 5000) + 1000, // Random visits
-        uniqueVisitors: Math.floor(Math.random() * 3000) + 500,
-        pageViews: Math.floor(Math.random() * 10000) + 2000,
-        bounceRate: `${Math.floor(Math.random() * 60) + 20}%`, // Random bounce rate
-        topPages: [
-            { path: '/', visits: Math.floor(Math.random() * 500) + 100 },
-            { path: '/article/some-popular-article', visits: Math.floor(Math.random() * 200) + 50 },
-            { path: '/category/technology', visits: Math.floor(Math.random() * 150) + 40 },
-            { path: '/article/another-one', visits: Math.floor(Math.random() * 100) + 30 },
-            { path: '/about', visits: Math.floor(Math.random() * 80) + 20 },
-        ],
-        // Add more stats if needed by your dashboard
-        totalArticles: 0, // You could query this
-        totalUsers: 0,    // You could query this
-    };
-
-    // --- Optional: Query actual counts ---
     try {
-        const [articleCount] = await query('SELECT COUNT(*) as count FROM articles');
-        const [userCount] = await query('SELECT COUNT(*) as count FROM users');
-        placeholderStats.totalArticles = articleCount?.count || 0;
-        placeholderStats.totalUsers = userCount?.count || 0;
+        // Get total visits (all page_views)
+        const [totalVisitsRow] = await query('SELECT COUNT(*) as count FROM page_views');
+        const totalVisits = totalVisitsRow?.count || 0;
+
+        // Get unique visitors (by user_id or IP if available)
+        const [uniqueVisitorsRow] = await query('SELECT COUNT(DISTINCT user_id) as count FROM page_views');
+        const uniqueVisitors = uniqueVisitorsRow?.count || 0;
+
+        // Get total page views (same as totalVisits for now)
+        const pageViews = totalVisits;
+
+        // Get bounce rate (placeholder, or calculate if you have session data)
+        const bounceRate = '0%';
+
+        // Get all articles and their slugs
+        const articles = await query('SELECT id, slug, title FROM articles');
+
+        // For each article, count visits in page_views
+        const topPages = [];
+        for (const article of articles) {
+            const [viewsRow] = await query('SELECT COUNT(*) as count FROM page_views WHERE path = ?', [`/article/${article.slug}`]);
+            topPages.push({
+                path: `/article/${article.slug}`,
+                visits: viewsRow?.count || 0,
+                title: article.title,
+            });
+        }
+        // Sort by visits desc, take top 10
+        topPages.sort((a, b) => b.visits - a.visits);
+        const topPagesLimited = topPages.slice(0, 10);
+
+        return NextResponse.json({
+            totalVisits,
+            uniqueVisitors,
+            pageViews,
+            bounceRate,
+            topPages: topPagesLimited,
+        });
     } catch (error) {
-        console.error("Failed to fetch counts for dashboard:", error);
-        // Don't fail the request, just use 0s
+        console.error('Failed to fetch real analytics:', error);
+        return NextResponse.json({
+            totalVisits: 0,
+            uniqueVisitors: 0,
+            pageViews: 0,
+            bounceRate: '0%',
+            topPages: [],
+            error: error.message,
+        }, { status: 500 });
     }
-    // --- End Optional Query ---
-
-
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 500));
-
-    return NextResponse.json(placeholderStats);
 }
