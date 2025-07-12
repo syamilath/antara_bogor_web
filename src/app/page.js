@@ -370,12 +370,14 @@ export default function RetroNews() {
         <div className="container mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-center mb-8">
             <div className="flex items-center gap-3">
-              <img
-                src="/uploads/logo-removebg-preview.png"
-                alt="Logo"
-                className="w-20
-     h-auto"
-              />
+    <Image
+      src="/uploads/logo-removebg-preview.png"
+      alt="Logo"
+      width={80}
+      height={80}
+      className="w-20 h-auto"
+      priority
+    />
               <h1 className="hidden md:block text-xl sm:text-2xl md:text-4xl font-extrabold text-[#013f6e]">
                 ANTARA<span className="text-[#a9a9a9]">BOGOR</span>
               </h1>
@@ -626,7 +628,14 @@ export default function RetroNews() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div>
               <h3 className="text-2xl font-bold mb-6 text-[var(--primary)] flex items-center">
-                <img src="/uploads/logo-removebg-preview.png" alt="Logo" className="w-[80px] h-auto mr-4" />
+                <Image
+                  src="/uploads/logo-removebg-preview.png"
+                  alt="Logo"
+                  width={80}
+                  height={80}
+                  className="w-[80px] h-auto mr-4"
+                  priority
+                />
                 ANTARABOGOR
               </h3>
               <p className="text-gray-600 mb-6">
