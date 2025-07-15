@@ -21,3 +21,9 @@ export async function query(sql, values) {
     throw error;
   }
 }
+
+export async function incrementVisitCount(slug) {
+  console.log('Incrementing visits for:', slug);
+  // This will increment the visits column by 1 for the article with the given slug
+  await query('UPDATE articles SET visits = visits + 1 WHERE slug = ?', [slug]);
+}

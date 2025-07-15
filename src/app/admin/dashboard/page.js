@@ -10,11 +10,15 @@ export default function DashboardPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
+    let intervalId;
+
     const fetchStats = async () => {
       setLoading(true);
       setError(null);
       try {
-        const response = await fetch('/api/admin/analytics/traffic');
+        const response = await fetch('/api/admin/analytics/traffic?ts=' + Date.now(), {
+          cache: 'no-store'
+        });
         if (!response.ok) throw new Error('Failed to fetch traffic data');
         const data = await response.json();
         setStats(data);
@@ -24,7 +28,14 @@ export default function DashboardPage() {
         setLoading(false);
       }
     };
-    fetchStats();
+
+    fetchStats(); // Initial fetch
+
+    // Poll every 5 seconds
+    intervalId = setInterval(fetchStats, 5000);
+
+    // Cleanup on unmount
+    return () => clearInterval(intervalId);
   }, []);
 
   return (

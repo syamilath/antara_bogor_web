@@ -93,6 +93,7 @@ export async function POST(request) {
     const author_id = adminUser.userId;
     const status = formData.get("status") || "draft";
     const tagsArray = JSON.parse(formData.get("tags") || "[]"); // Get tags array
+    const keywordsArray = JSON.parse(formData.get("keywords") || "[]"); // Get keywords array
     const imageFile = formData.get("image");
 
     if (!title || !content || !category_id) {
@@ -138,12 +139,11 @@ export async function POST(request) {
     // Determine if the article is being published now
     const isPublishingNow = status === "published"; // Check status before insert
 
-    // Insert article data (REMOVE 'published_at' column from this INSERT)
+    // Insert article data (add keywords field)
     const articleSql = `
-            INSERT INTO articles (title, slug, content, category_id, author_id, status, image_url, created_at, updated_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
+            INSERT INTO articles (title, slug, content, category_id, author_id, status, image_url, keywords, created_at, updated_at)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())
         `;
-    // Ensure 'published_at' is NOT in the parameters list below
     const [articleResult] = await connection.execute(articleSql, [
       title,
       slug,
@@ -152,6 +152,7 @@ export async function POST(request) {
       author_id,
       status,
       imageUrl,
+      JSON.stringify(keywordsArray),
     ]);
     const newArticleId = articleResult.insertId;
 
@@ -197,6 +198,7 @@ export async function POST(request) {
         message: "Article created successfully",
         articleId: newArticleId,
         slug: slug,
+        title: title, // Add the title to the response
       },
       { status: 201 }
     );

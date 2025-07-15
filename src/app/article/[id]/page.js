@@ -6,12 +6,8 @@ import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import ArticleSidebar from '@/app/components/ArticleSidebar';
 import { fallbackCategories } from '@/app/page';
+import Image from 'next/image';
    
-
-console.log(fallbackCategories);
-
-
-
 
 const getFormattedDate = (dateString, options = { year: 'numeric', month: 'long', day: 'numeric' }) => {
   if (!dateString) return 'Unknown Date';
@@ -22,6 +18,9 @@ const getFormattedDate = (dateString, options = { year: 'numeric', month: 'long'
 export default function ArticlePage() {
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
+  // selectedCategory is the slug of the current article's category
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false); // <-- Add sidebar state
   const params = useParams();
   const { id: slug } = params;
 
@@ -111,8 +110,13 @@ export default function ArticlePage() {
       try {
         const res = await fetch(`/api/articles/${slug}`);
         const data = await res.json();
-        if (res.ok) setArticle(data);
-        else console.error(data.error);
+        if (res.ok) {
+          setArticle(data);
+          // Set selectedCategory to the article's category slug if available
+          setSelectedCategory(data.category_slug || null);
+        } else {
+          console.error(data.error);
+        }
         setLoading(false);
       } catch (error) {
         console.error('Error fetching article:', error);
@@ -120,6 +124,12 @@ export default function ArticlePage() {
       }
     };
     if (slug) fetchArticle();
+  }, [slug]);
+
+  useEffect(() => {
+    if (!slug) return;
+    // Increment visit count
+    fetch(`/api/articles/${slug}/visit`, { method: 'POST' });
   }, [slug]);
 
   return (
@@ -139,53 +149,108 @@ export default function ArticlePage() {
         <div className="absolute bottom-1/4 left-1/3 w-20 h-20 bg-yellow-400 rounded-full opacity-20 blur-2xl animate-pulse delay-500"></div>
       </div>
 
-       <ArticleSidebar
-      categories={fallbackCategories}
-      selectedCategory={article}
-      onSelectCategory={setSelectedCategory}
-    />
+      {/* Hamburger for mobile */}
+      <button
+        className="fixed top-4 left-4 z-50 md:hidden bg-white/80 rounded-full p-2 shadow-lg border border-gray-200 hover:bg-blue-100 transition"
+        onClick={() => setSidebarOpen(true)}
+        aria-label="Open sidebar"
+      >
+        <svg className="h-7 w-7 text-blue-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+        </svg>
+      </button>
 
-      <main className="container mx-auto px-4 py-12 relative z-10">
-        {loading ? (
-          <div className="text-center text-gray-500 text-lg animate-pulse">Loading article...</div>
-        ) : article ? (
-          <article className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-200 hover:shadow-2xl transition-transform transform hover:-translate-y-1 duration-500">
-            <div className="p-8">
-              <div className="flex flex-wrap gap-3 items-center mb-6">
-                <span className="bg-blue-600 text-white text-xs font-semibold uppercase px-3 py-1 rounded-full">{article.category_name || 'Unknown'}</span>
-                {/* <span className="text-gray-500 text-sm">{getFormattedDate(article.published_at)}</span> */}
+      {/* Sidebar overlay for mobile */}
+      {sidebarOpen && (
+        <div
+          className="fixed inset-0 bg-black bg-opacity-40 z-40 md:hidden transition-opacity"
+          onClick={() => setSidebarOpen(false)}
+        />
+      )}
+
+      <div className="container mx-auto px-4 py-12 relative z-10 flex flex-col md:flex-row gap-8">
+        {/* Sidebar: hidden on mobile unless open, always visible on md+ */}
+        <div
+          className={`fixed top-0 left-0 h-full w-72 bg-white z-50 shadow-lg transform transition-transform duration-300 md:static md:translate-x-0 md:w-1/4 md:max-w-xs md:bg-transparent md:shadow-none ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'} md:block`}
+        >
+          {/* Close button for mobile */}
+          <div className="flex justify-end md:hidden p-4">
+            <button
+              onClick={() => setSidebarOpen(false)}
+              className="text-gray-500 hover:text-blue-700 p-2 rounded-full focus:outline-none"
+              aria-label="Close sidebar"
+            >
+              <svg className="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          </div>
+          <ArticleSidebar
+            categories={fallbackCategories}
+            selectedCategory={selectedCategory}
+            onSelectCategory={slug => {
+              setSelectedCategory(slug);
+              setSidebarOpen(false); // close sidebar on select (mobile)
+            }}
+          />
+        </div>
+
+        <main className="flex-1">
+          {loading ? (
+            <div className="text-center text-gray-500 text-lg animate-pulse">Loading article...</div>
+          ) : article ? (
+            <article className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-200 hover:shadow-2xl transition-transform transform hover:-translate-y-1 duration-500">
+              <div className="p-8">
+                <div className="flex flex-wrap gap-3 items-center mb-6">
+                  <span className="bg-blue-600 text-white text-xs font-semibold uppercase px-3 py-1 rounded-full">{article.category_name || 'Unknown'}</span>
+                  {/* <span className="text-gray-500 text-sm">{getFormattedDate(article.published_at)}</span> */}
+                </div>
+                <h1 className="text-4xl md:text-5xl font-bold leading-tight text-gray-900 mb-4">{article.title}</h1>
+                <div className="flex items-center gap-4 text-gray-500 text-sm">
+                  <Image
+                    src="https://randomuser.me/api/portraits/women/44.jpg"
+                    alt="Author"
+                    width={48}
+                    height={48}
+                    className="w-12 h-12 rounded-full object-cover border-2 border-gray-300"
+                  />
+                  <span>By {article.author_name || 'Unknown'}</span>
+                </div>
               </div>
-              <h1 className="text-4xl md:text-5xl font-bold leading-tight text-gray-900 mb-4">{article.title}</h1>
-              <div className="flex items-center gap-4 text-gray-500 text-sm">
-                <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="Author" className="w-12 h-12 rounded-full object-cover border-2 border-gray-300" />
-                <span>By {article.author_name || 'Unknown'}</span>
-              </div>
-            </div>
-            <div>
-<img
+              <div>
+<Image
   src={article.image_url || 'https://via.placeholder.com/800x400?text=No+Image'}
   alt={article.title}
+  width={800}
+  height={400}
   className="w-full h-auto object-contain"
 />
 
-            </div>
-            <div className="p-8 text-gray-800 leading-relaxed text-lg space-y-6">
-              {article.content.split('\n').map((paragraph, index) => <p key={index}>{paragraph}</p>)}
-            </div>
-            <div className="p-8 text-center border-t border-gray-200">
-              <Link href="/" className="inline-block bg-blue-600 text-white px-6 py-3 rounded-full font-semibold shadow-md hover:bg-blue-700 transition">← Back to Home</Link>
-            </div>
-          </article>
-        ) : (
-          <div className="text-center text-gray-500 text-lg">Article not found.</div>
-        )}
-      </main>
+              </div>
+              <div className="p-8 text-gray-800 leading-relaxed text-lg space-y-6">
+                {article.content.split('\n').map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+              </div>
+              <div className="p-8 text-center border-t border-gray-200">
+                <Link href="/" className="inline-block bg-blue-600 text-white px-6 py-3 rounded-full font-semibold shadow-md hover:bg-blue-700 transition">← Back to Home</Link>
+              </div>
+            </article>
+          ) : (
+            <div className="text-center text-gray-500 text-lg">Article not found.</div>
+          )}
+        </main>
+      </div>
 
       <footer className="py-16 mt-16 bg-slate-50 relative z-10">
         <div className="container mx-auto grid grid-cols-1 md:grid-cols-4 gap-10 px-4">
           <div>
             <h3 className="text-2xl font-bold flex items-center gap-3 text-[#013f6e] mb-4">
-              <img src="/uploads/logo-removebg-preview.png" alt="Logo" className="w-14" />
+              <Image
+                src="/uploads/logo-removebg-preview.png"
+                alt="Logo"
+                width={56}
+                height={56}
+                className="w-14"
+              />
               ANTARABOGOR
             </h3>
             <p className="text-gray-600 mb-6">Delivering news with a retro-modern twist since 2023. Your trusted source for accurate and timely information from around the globe.</p>

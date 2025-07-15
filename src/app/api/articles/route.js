@@ -7,7 +7,7 @@ export async function GET(request) {
   // Extract search parameters from the request URL
   const { searchParams } = new URL(request.url);
   const categorySlug = searchParams.get('category'); // Get 'category' query parameter
-  // const tagSlug = searchParams.get('tag'); // Example: You could add tag filtering later
+  const searchQuery = searchParams.get('q'); // Get 'q' search parameter
 
   console.log(`Attempting to fetch public articles... Category: ${categorySlug || 'All'}`); // Updated log
 
@@ -30,6 +30,21 @@ export async function GET(request) {
       console.log(`Filtering by category slug: ${categorySlug}`); // Log category filter
     }
 
+    // Add search query filtering
+    if (searchQuery) {
+      sql += ` AND (
+        a.title LIKE ?
+        OR JSON_SEARCH(a.keywords, 'one', ?) IS NOT NULL
+        OR a.id IN (
+          SELECT at.article_id FROM article_tags at
+          JOIN tags t ON at.tag_id = t.id
+          WHERE t.name LIKE ?
+        )
+      )`;
+      params.push(`%${searchQuery}%`, searchQuery, `%${searchQuery}%`);
+      console.log(`Filtering by search query: ${searchQuery}`); // Log search query filter
+    }
+
     // Add tag filtering if tagSlug is provided (Example structure)
     // if (tagSlug) {
     //   sql += ` AND a.id IN (SELECT at.article_id FROM article_tags at JOIN tags t ON at.tag_id = t.id WHERE t.slug = ?)`;
@@ -37,7 +52,7 @@ export async function GET(request) {
     //   console.log(`Filtering by tag slug: ${tagSlug}`);
     // }
 
-    sql += ` ORDER BY a.created_at DESC LIMIT 10`; // Keep ordering and limit
+    sql += ` ORDER BY a.created_at DESC LIMIT 20`; // Keep ordering and limit
 
     console.log("Executing SQL:", sql, "with params:", params); // Log SQL and params
     const articles = await query(sql, params); // Pass params to the query function

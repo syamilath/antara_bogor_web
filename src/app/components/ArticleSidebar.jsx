@@ -1,56 +1,60 @@
 // components/ArticleSidebar.jsx
 import Link from 'next/link';
-import { useMemo } from 'react';
+import PropTypes from 'prop-types';
 
-export default function ArticleSidebar({ categories, fallbackCategories, popularArticles }) {
-  const usedCategories = useMemo(() => {
-    return categories && categories.length > 0 ? categories : fallbackCategories;
-  }, [categories, fallbackCategories]);
-
+export default function ArticleSidebar({ categories, selectedCategory, onSelectCategory }) {
   return (
-    <aside className="w-full md:w-1/4 border-r border-gray-200 pr-4">
-      {/* Kategori */}
-      <div className="mb-8">
-        <h2 className="text-lg font-semibold mb-3">Kategori</h2>
-        <ul className="space-y-2">
-          <li>
+    <div className="w-64 min-h-screen bg-gray-50 shadow-lg flex flex-col transition-all duration-300">
+      <div className="flex items-center mb-8 mt-4 px-4">
+        <div className="neumorphic p-2 mr-3 pulse rounded-full bg-blue-500 text-white">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z" />
+          </svg>
+        </div>
+        <span className="text-xl font-bold text-gray-700">Kategori</span>
+      </div>
+      <nav className="flex-grow px-4">
+        <ul>
+          <li className="mb-2">
             <button
               onClick={() => onSelectCategory('all')}
-              className={`block w-full text-left px-3 py-2 rounded-md ${
-                selectedCategory === 'all' ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'
+              className={`flex items-center w-full py-2 px-3 rounded-lg transition-all duration-200 text-left ${
+                selectedCategory === 'all'
+                  ? 'neumorphic-inset bg-blue-100 text-blue-700 font-semibold'
+                  : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
               }`}
             >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
               Semua Kategori
             </button>
           </li>
-          {usedCategories.map((cat) => (
-            <li key={cat.slug}>
+          {categories.map((cat) => (
+            <li key={cat.slug} className="mb-2">
               <button
                 onClick={() => onSelectCategory(cat.slug)}
-                className={`block w-full text-left px-3 py-2 rounded-md ${
-                  selectedCategory === cat.slug ? 'bg-blue-100 text-blue-700' : 'hover:bg-gray-100'
+                className={`flex items-center w-full py-2 px-3 rounded-lg transition-all duration-200 text-left ${
+                  selectedCategory === cat.slug
+                    ? 'neumorphic-inset bg-blue-100 text-blue-700 font-semibold'
+                    : 'text-gray-600 hover:bg-gray-100 hover:text-gray-800'
                 }`}
               >
-                {cat.name} ({cat.article_count})
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6" />
+                </svg>
+                {cat.name} <span className="ml-2 text-xs text-gray-400">({cat.article_count})</span>
               </button>
             </li>
           ))}
         </ul>
-      </div>
-
-      {/* Artikel Populer */}
-      <div>
-        <h2 className="text-lg font-semibold mb-3">Artikel Populer</h2>
-        <ul className="space-y-2 text-sm">
-          {popularArticles.map((article) => (
-            <li key={article.slug}>
-              <Link href={`/article/${article.slug}`} className="block px-3 py-2 hover:bg-gray-100 rounded-md">
-                #{article.rank}. {article.title}
-              </Link>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </aside>
+      </nav>
+    </div>
   );
 }
+
+ArticleSidebar.propTypes = {
+  categories: PropTypes.array.isRequired,
+  selectedCategory: PropTypes.string,
+  onSelectCategory: PropTypes.func.isRequired,
+};

@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import 'easymde/dist/easymde.min.css';
 import Sidebar from '../../components/Sidebar.jsx';
+import Image from 'next/image';
 
 // Dynamically import SimpleMDE to avoid SSR issues
 const SimpleMdeReact = dynamic(() => import('react-simplemde-editor'), { ssr: false });
@@ -24,6 +25,9 @@ export default function EditArticlePage() {
     const [imageFile, setImageFile] = useState(null); // New image file selected by user
     const [imagePreview, setImagePreview] = useState(null); // Preview URL for new image
     const [removeImage, setRemoveImage] = useState(false); // Flag to remove existing image
+    // Add newTag and customSlug state
+    const [newTag, setNewTag] = useState('');
+    const [customSlug, setCustomSlug] = useState('');
 
     // Other State
     const [categories, setCategories] = useState([]);
@@ -57,7 +61,14 @@ export default function EditArticlePage() {
                     setContent(articleData.content || '');
                     setCategoryId(articleData.category_id || '');
                     setStatus(articleData.status || 'draft');
-                    setTags(articleData.tags || []); // Assuming API returns tags array
+                    setTags(
+                      Array.isArray(articleData.tags)
+                        ? articleData.tags
+                        : typeof articleData.tags === 'string'
+                          ? articleData.tags.split(',').map(tag => tag.trim()).filter(Boolean)
+                          : []
+                    );
+                    setCustomSlug(articleData.custom_slug || '');
                     setCurrentImageUrl(articleData.image_url || null);
                     setImagePreview(articleData.image_url || null); // Initially show current image
                 } else {
@@ -153,12 +164,15 @@ export default function EditArticlePage() {
         }
     };
 
-    // Handle tag input (basic example: comma-separated)
-    const handleTagsChange = (event) => {
-        const tagsString = event.target.value;
-        // Split by comma, trim whitespace, remove empty strings
-        const tagsArray = tagsString.split(',').map(tag => tag.trim()).filter(tag => tag !== '');
-        setTags(tagsArray);
+    // Add tag handlers
+    const handleAddTag = () => {
+        if (newTag.trim() && !tags.includes(newTag.trim())) {
+            setTags([...tags, newTag.trim()]);
+            setNewTag('');
+        }
+    };
+    const handleRemoveTag = (tagToRemove) => {
+        setTags(tags.filter((tag) => tag !== tagToRemove));
     };
 
     // Handle form submission
@@ -174,6 +188,7 @@ export default function EditArticlePage() {
         formData.append('status', status);
         formData.append('tags', JSON.stringify(tags)); // Send tags as JSON string
         formData.append('remove_image', removeImage.toString()); // Send remove flag
+        if (customSlug) formData.append('custom_slug', customSlug);
 
         // Only append image file if a new one was selected
         if (imageFile) {
@@ -262,17 +277,59 @@ export default function EditArticlePage() {
                         </select>
                     </div>
 
-                     {/* Tags Input */}
+                    {/* Custom Link */}
                     <div>
-                        <label htmlFor="tags" className="block text-sm font-medium text-gray-700 mb-1">Tags (comma-separated)</label>
+                        <label htmlFor="custom-slug" className="block text-sm font-medium text-gray-700 mb-1">Custom Link (optional)</label>
                         <input
                             type="text"
-                            id="tags"
-                            value={tags.join(', ')} // Display tags as comma-separated string
-                            onChange={handleTagsChange}
+                            id="custom-slug"
+                            value={customSlug}
+                            onChange={e => setCustomSlug(e.target.value)}
                             className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
-                            placeholder="e.g., technology, programming, news"
+                            placeholder="e.g., my-custom-article-link"
                         />
+                        <p className="text-xs text-gray-500 mt-1">Leave blank to auto-generate from title.</p>
+                    </div>
+
+                    {/* Tags */}
+                    <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
+                        <div className="flex flex-wrap gap-2 mb-2">
+                            {tags.map((tag) => (
+                                <span key={tag} className="inline-flex items-center bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+                                    {tag}
+                                    <button
+                                        type="button"
+                                        onClick={() => handleRemoveTag(tag)}
+                                        className="ml-1 text-blue-600 hover:text-blue-800"
+                                        aria-label={`Remove ${tag} tag`}
+                                    >
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                </span>
+                            ))}
+                        </div>
+                        <div className="flex items-center">
+                            <input
+                                type="text"
+                                value={newTag}
+                                onChange={e => setNewTag(e.target.value)}
+                                onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
+                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
+                                placeholder="Add new tag"
+                                aria-label="Add new tag"
+                            />
+                            <button
+                                type="button"
+                                onClick={handleAddTag}
+                                className="ml-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
+                                aria-label="Add tag"
+                            >
+                                Add
+                            </button>
+                        </div>
                     </div>
 
                     {/* Status */}
@@ -295,10 +352,12 @@ export default function EditArticlePage() {
                         <label htmlFor="image-upload" className="block text-sm font-medium text-gray-700 mb-1">Featured Image</label>
                         <div className="mt-1 flex items-center space-x-4">
                             {imagePreview && (
-                                <img
+                                <Image
                                     src={imagePreview}
                                     alt="Image Preview"
-                                    className="h-20 w-auto object-cover rounded border border-gray-200" // Added border
+                                    width={80}
+                                    height={80}
+                                    className="h-20 w-auto object-cover rounded border border-gray-200"
                                 />
                             )}
                             <input

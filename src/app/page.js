@@ -49,6 +49,58 @@ function ArticleCard({ article }) {
   );
 }
 
+export const fallbackCategories = [
+  { id: 1, name: 'Politics', slug: 'politics', article_count: 24 },
+  { id: 2, name: 'Technology', slug: 'technology', article_count: 18 },
+  { id: 3, name: 'Business', slug: 'business', article_count: 15 },
+  { id: 4, name: 'Sports', slug: 'sports', article_count: 22 },
+  { id: 5, name: 'Entertainment', slug: 'entertainment', article_count: 17 },
+  { id: 6, name: 'History', slug: 'history', article_count: 20 },
+];
+
+const popularArticles = [
+  {
+    id: 1,
+    title: 'Historic Peace Agreement Signed',
+    slug: 'historic-peace-agreement-2023',
+    views: '24.5k',
+    date: 'May 12',
+    rank: 1,
+  },
+  {
+    id: 2,
+    title: 'Tech Billionaire Unveils Space Plans',
+    slug: 'tech-billionaire-space-2023',
+    views: '18.7k',
+    date: 'May 11',
+    rank: 2,
+  },
+  {
+    id: 3,
+    title: 'Stock Market Hits Record High',
+    slug: 'stock-market-high-2023',
+    views: '15.2k',
+    date: 'May 10',
+    rank: 3,
+  },
+  {
+    id: 4,
+    title: 'New Species in Amazon Rainforest',
+    slug: 'new-species-amazon-2023',
+    views: '12.9k',
+    date: 'May 9',
+    rank: 4,
+  },
+  {
+    id: 5,
+    title: 'Film Director’s New Project',
+    slug: 'film-director-project-2023',
+    views: '10.3k',
+    date: 'May 8',
+    rank: 5,
+  },
+];
+
 
 // Main RetroNews Component
 export default function RetroNews() {
@@ -63,58 +115,6 @@ export default function RetroNews() {
   const navMenuRef = useRef(null);
   const router = useRouter();
 
-  // Fallback Data (Move to src/data/fallbacks.js in production)
-  const fallbackCategories = [
-    { id: 1, name: 'Politics', slug: 'politics', article_count: 24 },
-    { id: 2, name: 'Technology', slug: 'technology', article_count: 18 },
-    { id: 3, name: 'Business', slug: 'business', article_count: 15 },
-    { id: 4, name: 'Sports', slug: 'sports', article_count: 22 },
-    { id: 5, name: 'Entertainment', slug: 'entertainment', article_count: 17 },
-    { id: 6, name: 'History', slug: 'history', article_count: 20 },
-  ];
-
-  const popularArticles = [
-    {
-      id: 1,
-      title: 'Historic Peace Agreement Signed',
-      slug: 'historic-peace-agreement-2023',
-      views: '24.5k',
-      date: 'May 12',
-      rank: 1,
-    },
-    {
-      id: 2,
-      title: 'Tech Billionaire Unveils Space Plans',
-      slug: 'tech-billionaire-space-2023',
-      views: '18.7k',
-      date: 'May 11',
-      rank: 2,
-    },
-    {
-      id: 3,
-      title: 'Stock Market Hits Record High',
-      slug: 'stock-market-high-2023',
-      views: '15.2k',
-      date: 'May 10',
-      rank: 3,
-    },
-    {
-      id: 4,
-      title: 'New Species in Amazon Rainforest',
-      slug: 'new-species-amazon-2023',
-      views: '12.9k',
-      date: 'May 9',
-      rank: 4,
-    },
-    {
-      id: 5,
-      title: 'Film Director’s New Project',
-      slug: 'film-director-project-2023',
-      views: '10.3k',
-      date: 'May 8',
-      rank: 5,
-    },
-  ];
 
   // Fetch Articles and Categories
   useEffect(() => {
@@ -367,23 +367,27 @@ export default function RetroNews() {
 
       {/* Header */}
       <header className="py-8 relative z-10">
+        {/* Responsive Header: Logo left, weather right on mobile; stacked on desktop */}
         <div className="container mx-auto px-4">
-          <div className="flex flex-col md:flex-row justify-between items-center mb-8">
+          <div className="flex flex-row items-center justify-between gap-4 mb-8 w-full">
+            {/* Logo on the left */}
             <div className="flex items-center gap-3">
-    <Image
-      src="/uploads/logo-removebg-preview.png"
-      alt="Logo"
-      width={80}
-      height={80}
-      className="w-20 h-auto"
-      priority
-    />
+              <Image
+                src="/uploads/logo-removebg-preview.png"
+                alt="Logo"
+                width={80}
+                height={80}
+                className="w-20 h-auto"
+                priority
+              />
               <h1 className="hidden md:block text-xl sm:text-2xl md:text-4xl font-extrabold text-[#013f6e]">
                 ANTARA<span className="text-[#a9a9a9]">BOGOR</span>
               </h1>
             </div>
-
-            <TimeCard />
+            {/* Weather/time card on the right */}
+            <div className="flex-shrink-0">
+              <TimeCard />
+            </div>
           </div>
           <nav className="neumorphic-nav p-4 flex items-center justify-between" role="navigation">
             <ul
@@ -412,6 +416,31 @@ export default function RetroNews() {
                 </li>
               ))}
             </ul>
+            {/* Search Bar */}
+            <div className="flex justify-center my-6">
+              <form
+                action="/search"
+                method="get"
+                className="flex items-center bg-white rounded-full shadow-md px-4 py-2 w-full max-w-xl border border-gray-200 focus-within:ring-2 focus-within:ring-blue-400"
+                style={{ boxShadow: '0 2px 12px 0 rgba(0,0,0,0.06)' }}
+              >
+                <input
+                  type="text"
+                  name="q"
+                  placeholder="Search news by keyword, title, or tag..."
+                  className="flex-1 bg-transparent outline-none px-2 py-1 text-lg text-gray-700"
+                  required
+                  aria-label="Search news"
+                />
+                <button
+                  type="submit"
+                  className="ml-2 px-4 py-2 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition"
+                  aria-label="Search"
+                >
+                  Search
+                </button>
+              </form>
+            </div>
             {/* <div className="flex items-center space-x-2 ml-4">
               <Link href="/admin">
                 <button
@@ -429,44 +458,49 @@ export default function RetroNews() {
         </div>
       </header>
 
-      <div className="max-w-[1285px] mx-auto px-4" >
-        <div className="max-w-screen-xl mx-auto  bg-[#013f6e] text-white flex items-center rounded-md overflow-hidden">
-
-          {/* Label */}
-          <div className="px-2 py-2 font-bold bg-red-800 whitespace-nowrap rounded-md text-sm sm:text-base">
-            BREAKING NEWS
+      {/* Neumorphic Breaking News Bar - Layout Fix with Margin and Height */}
+      <style>{`
+        @keyframes neumorph-marquee {
+          0% { transform: translateX(0%); }
+          100% { transform: translateX(-50%); }
+        }
+        .neumorph-animate-marquee {
+          display: flex;
+          min-width: 100%;
+          animation: neumorph-marquee 40s linear infinite;
+          align-items: center;
+          height: 3.2rem; /* Increased height for better fit */
+        }
+      `}</style>
+      <div className="w-full bg-[#e8f0fa] shadow-[0_4px_24px_0_rgba(0,0,0,0.08)] rounded-2xl py-2 px-4 flex items-center overflow-x-auto whitespace-nowrap mb-8 border border-[#e0e7ef] mt-6 mx-auto max-w-[95vw]" style={{marginTop: '1.5rem', marginBottom: '2rem'}}>
+      <span className="flex items-center bg-white text-[#d7263d] font-bold px-4 py-1 rounded-full text-base sm:text-lg mr-4 flex-shrink-0 h-12 shadow-lg" style={{height: '2.8rem'}}>
+          <svg className="w-5 h-5 mr-2 text-[#d7263d]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          BREAKING NEWS
+        </span>
+        <div className="flex-1 min-w-0 overflow-hidden">
+          <div className="neumorph-animate-marquee group-hover:[animation-play-state:paused] items-center pl-8 pr-8 rounded-full bg-[#e8f0fa] py-1 shadow-[0_2px_8px_0_rgba(0,0,0,0.03)]" style={{height: '2.8rem'}}>
+            {articlesToday && articlesToday.length > 0 ? (
+              [...articlesToday, ...articlesToday].map((article, index) => (
+                <span key={index} className="text-[#013f6e] font-semibold text-base sm:text-lg hover:text-[#d7263d] transition h-[2.2rem] w-full flex items-center justify-center text-center mr-8 sm:mr-12 p-1" style={{height: '2.2rem', minWidth: '7rem'}}>
+                  <Link href={`/article/${article.slug}`}>{article.title}</Link>
+                </span>
+              ))
+            ) : (
+              [
+                "There is no latest news today.",
+                "Please check back later.",
+                "Thank you for visiting us!"
+              ].map((msg, index) => (
+                <span key={index} className="text-[#013f6e] font-semibold text-base sm:text-lg h-[2.2rem] w-full flex items-center justify-center text-center mr-8 sm:mr-12 p-1" style={{height: '2.2rem', minWidth: '7rem'}}>
+                  {msg}
+                </span>
+              ))
+            )}
           </div>
-
-          {/* Konten Berita Berjalan */}
-          <div className="relative overflow-hidden flex-1 group font-bold text-xs sm:text-lg ml-4">
-            <div className="animate-marquee whitespace-nowrap group-hover:[animation-play-state:paused]">
-              {articlesToday && articlesToday.length > 0 ? (
-                [...articlesToday, ...articlesToday].map((article, index) => (
-                  <span key={index} className="inline-block mr-8 sm:mr-12 p-1">
-                    <Link href={`/article/${article.slug}`} className="hover:underline">
-                      {article.title}
-                    </Link>
-                  </span>
-                ))
-              ) : (
-                // Jika tidak ada berita, tetap buat animasi berjalan
-                [
-                  "There is no latest news today.",
-                  "Please check back later.",
-                  "Thank you for visiting us!"
-                ]
-                  .map((msg, index) => (
-                    <span key={index} className="inline-block mr-8 sm:mr-12 p-1">
-                      {msg}
-                    </span>
-                  ))
-              )}
-            </div>
-          </div>
-
         </div>
       </div>
-
 
 
       {/* Main Content */}
@@ -502,16 +536,13 @@ export default function RetroNews() {
                         priority
                       />
                       {/* Overlay Teks */}
-                      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-6">
-                        <div className="flex items-center space-x-4 mb-2">
-                          <span className="category-tag bg-[#013f6e] text-white px-3 py-1 rounded text-xs">{filteredArticles[0].category?.name || 'General'}</span>
-                          <span className="date-badge bg-gray-800 text-white px-3 py-1 rounded text-xs">
-                            {getFormattedDate(filteredArticles[0].created_at, { month: 'long', day: 'numeric' })}
-                          </span>
+                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-black/60 rounded-b-2xl">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="bg-[#013f6e] text-white text-xs font-medium px-3 py-0.5 rounded-full">{filteredArticles[0].category?.name || 'Unknown'}</span>
+                          <span className="bg-white/80 text-gray-700 text-xs font-medium px-3 py-0.5 rounded-full">{getFormattedDate(filteredArticles[0].created_at, { month: 'short', day: 'numeric' })}</span>
                         </div>
-                        <h2 className="text-3xl font-bold text-white leading-tight mb-1">{filteredArticles[0].title}</h2>
-                        <p className="text-sm text-gray-200 line-clamp-2">{filteredArticles[0].excerpt}</p>
-                        <p className="text-xs text-gray-300 mt-1">By {filteredArticles[0].author?.name || 'Staff Writer'}</p>
+                        <h2 className="text-2xl font-bold text-white mb-1">{filteredArticles[0].title}</h2>
+                        <p className="text-xs text-gray-200">By {filteredArticles[0].author?.name || 'Unknown'}</p>
                       </div>
                     </Link>
                   </div>
@@ -623,39 +654,41 @@ export default function RetroNews() {
       </main>
 
       {/* Footer */}
-      <footer className="py-8 mt-12 relative z-10">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-            <div>
-              <h3 className="text-2xl font-bold mb-6 text-[var(--primary)] flex items-center">
-                <Image
-                  src="/uploads/logo-removebg-preview.png"
-                  alt="Logo"
-                  width={80}
-                  height={80}
-                  className="w-[80px] h-auto mr-4"
-                  priority
-                />
-                ANTARABOGOR
-              </h3>
-              <p className="text-gray-600 mb-6">
-                Delivering news with a retro-modern twist since 2025. Your trusted source for accurate and timely
-                information.
-              </p>
-              <div className="flex space-x-4">
-                {['facebook-f', 'twitter', 'instagram', 'linkedin-in'].map((icon, index) => (
-                  <Link
-                    key={index}
-                    href="#"
-                    className="social-icon"
-                    aria-label={`Follow us on ${icon.replace('-', ' ')}`}
-                    rel="noopener noreferrer"
-                  >
-                    <i className={`fab fa-${icon}`}></i>
-                  </Link>
-                ))}
-              </div>
+      <footer className="py-16 mt-16 bg-slate-50 relative z-10">
+        <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 px-4">
+          {/* Column 1: Logo/About/Socials */}
+          <div>
+            <h3 className="text-2xl font-bold mb-6 text-[var(--primary)] flex items-center">
+              <Image
+                src="/uploads/logo-removebg-preview.png"
+                alt="Logo"
+                width={80}
+                height={80}
+                className="w-[80px] h-auto mr-4"
+                priority
+              />
+              ANTARABOGOR
+            </h3>
+            <p className="text-gray-600 mb-6">
+              Delivering news with a retro-modern twist since 2025. Your trusted source for accurate and timely
+              information.
+            </p>
+            <div className="flex space-x-4">
+              {['facebook-f', 'twitter', 'instagram', 'linkedin-in'].map((icon, index) => (
+                <Link
+                  key={index}
+                  href="#"
+                  className="social-icon"
+                  aria-label={`Follow us on ${icon.replace('-', ' ')}`}
+                  rel="noopener noreferrer"
+                >
+                  <i className={`fab fa-${icon}`}></i>
+                </Link>
+              ))}
             </div>
+          </div>
+          {/* Column 2: Quick Links & Categories */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
               <h4 className="text-lg font-bold mb-6 border-b border-[var(--primary)] pb-2">Quick Links</h4>
               <ul className="space-y-3">
@@ -694,42 +727,43 @@ export default function RetroNews() {
                 ))}
               </ul>
             </div>
-            <div>
-              <h4 className="text-lg font-bold mb-6 border-b border-[var(--primary)] pb-2">Contact Us</h4>
-              <ul className="space-y-4 text-gray-600">
-                <li className="flex items-start">
-                  <div className="neumorphic-flat w-8 h-8 rounded-full flex items-center justify-center mr-3">
-                    <i className="fas fa-map-marker-alt text-[var(--primary)]"></i>
-                  </div>
-                  <span>123 Retro Street, News City, NC 12345</span>
-                </li>
-                <li className="flex items-center">
-                  <div className="neumorphic-flat w-8 h-8 rounded-full flex items-center justify-center mr-3">
-                    <i className="fas fa-phone-alt text-[var(--primary)]"></i>
-                  </div>
-                  <span>(123) 456-7890</span>
-                </li>
-                <li className="flex items-center">
-                  <div className="neumorphic-flat w-8 h-8 rounded-full flex items-center justify-center mr-3">
-                    <i className="fas fa-envelope text-[var(--primary)]"></i>
-                  </div>
-                  <span>info@retronews.com</span>
-                </li>
-                <li className="flex items-center">
-                  <div className="neumorphic-flat w-8 h-8 rounded-full flex items-center justify-center mr-3">
-                    <i className="far fa-clock text-[var(--primary)]"></i>
-                  </div>
-                  <span>Mon-Fri: 9AM - 5PM</span>
-                </li>
-              </ul>
-            </div>
           </div>
-          <div className="border-t border-gray-300 mt-12 pt-8 text-center text-gray-500">
-            <p>
-              © 2025 ANTARABOGOR. All rights reserved. | Designed with{' '}
-              <i className="fas fa-heart text-[var(--secondary)] mx-1"></i> for news enthusiasts
-            </p>
+          {/* Column 3: Contact Us */}
+          <div>
+            <h4 className="text-lg font-bold mb-6 border-b border-[var(--primary)] pb-2">Contact Us</h4>
+            <ul className="space-y-4 text-gray-600">
+              <li className="flex items-start">
+                <div className="neumorphic-flat w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                  <i className="fas fa-map-marker-alt text-[var(--primary)]"></i>
+                </div>
+                <span>123 Retro Street, News City, NC 12345</span>
+              </li>
+              <li className="flex items-center">
+                <div className="neumorphic-flat w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                  <i className="fas fa-phone-alt text-[var(--primary)]"></i>
+                </div>
+                <span>(123) 456-7890</span>
+              </li>
+              <li className="flex items-center">
+                <div className="neumorphic-flat w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                  <i className="fas fa-envelope text-[var(--primary)]"></i>
+                </div>
+                <span>info@retronews.com</span>
+              </li>
+              <li className="flex items-center">
+                <div className="neumorphic-flat w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                  <i className="far fa-clock text-[var(--primary)]"></i>
+                </div>
+                <span>Mon-Fri: 9AM - 5PM</span>
+              </li>
+            </ul>
           </div>
+        </div>
+        <div className="border-t border-gray-300 mt-12 pt-8 text-center text-gray-500">
+          <p>
+            © 2025 ANTARABOGOR. All rights reserved. | Designed with{' '}
+            <i className="fas fa-heart text-[var(--secondary)] mx-1"></i> for news enthusiasts
+          </p>
         </div>
       </footer>
     </div>

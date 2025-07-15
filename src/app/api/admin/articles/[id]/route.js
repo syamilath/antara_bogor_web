@@ -37,12 +37,20 @@ export async function GET(request, { params }) {
         if (!article) {
             return NextResponse.json({ error: 'Article not found' }, { status: 404 });
         }
-        // Parse tags if stored as JSON
-        try {
-            article.tags = JSON.parse(article.tags || '[]');
-        } catch (e) {
-            article.tags = []; // Default to empty array if parsing fails
-        }
+        // Fetch tags for this article (many-to-many join)
+        const tagRows = await query(
+          `SELECT t.name FROM tags t
+           JOIN article_tags at ON t.id = at.tag_id
+           WHERE at.article_id = ?`,
+          [id]
+        );
+        article.tags = tagRows.map(t => t.name);
+        // Parse tags if stored as JSON (legacy)
+        // try {
+        //     article.tags = JSON.parse(article.tags || '[]');
+        // } catch (e) {
+        //     article.tags = []; // Default to empty array if parsing fails
+        // }
         return NextResponse.json(article);
     } catch (error) {
         console.error(`Failed to fetch article ${id}:`, error);

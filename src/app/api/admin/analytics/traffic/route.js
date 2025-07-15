@@ -8,7 +8,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'YOUR_VERY_SECRET_KEY_REPLACE_ME';
 
 // --- Helper function to verify admin ---
 async function verifyAdmin(request) {
-    const cookieStore = cookies();
+    const cookieStore = await cookies();
     const token = cookieStore.get('auth_token')?.value;
     if (!token) return null;
 
@@ -44,28 +44,19 @@ export async function GET(request) {
         const bounceRate = '0%';
 
         // Get all articles and their slugs
-        const articles = await query('SELECT id, slug, title FROM articles');
-
-        // For each article, count visits in page_views
-        const topPages = [];
-        for (const article of articles) {
-            const [viewsRow] = await query('SELECT COUNT(*) as count FROM page_views WHERE path = ?', [`/article/${article.slug}`]);
-            topPages.push({
-                path: `/article/${article.slug}`,
-                visits: viewsRow?.count || 0,
-                title: article.title,
-            });
-        }
-        // Sort by visits desc, take top 10
-        topPages.sort((a, b) => b.visits - a.visits);
-        const topPagesLimited = topPages.slice(0, 10);
+        const articles = await query('SELECT slug, title, visits FROM articles ORDER BY visits DESC LIMIT 10');
+        const topPages = articles.map(article => ({
+            path: `/article/${article.slug}`,
+            visits: article.visits,
+            title: article.title,
+        }));
 
         return NextResponse.json({
             totalVisits,
             uniqueVisitors,
             pageViews,
             bounceRate,
-            topPages: topPagesLimited,
+            topPages: topPages,
         });
     } catch (error) {
         console.error('Failed to fetch real analytics:', error);

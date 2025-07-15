@@ -8,12 +8,19 @@ const nextConfig = {
         port: '',
         pathname: '/**', // Allow any path under this hostname
       },
-      // Add localhost for uploaded images
+      // Add localhost for uploaded images (works in both dev and production)
       {
-        protocol: 'http', // or 'https' if served over HTTPS locally
+        protocol: 'http',
         hostname: 'localhost',
-        port: '3000', // Your app's port (adjust if different)
+        port: '',
         pathname: '/uploads/**', // Allow paths starting with /uploads/
+      },
+      // Add this block for randomuser.me
+      {
+        protocol: 'https',
+        hostname: 'randomuser.me',
+        port: '',
+        pathname: '/**',
       },
     ],
   },

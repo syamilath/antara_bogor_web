@@ -32,6 +32,9 @@ function useArticleForm() {
   const [user, setUser] = useState(null);
   const [formErrors, setFormErrors] = useState({});
   const [articleStatus, setArticleStatus] = useState('draft');
+  const [customSlug, setCustomSlug] = useState('');
+  const [keywords, setKeywords] = useState([]);
+  const [newKeyword, setNewKeyword] = useState('');
 
   // Fetch Categories and User
   useEffect(() => {
@@ -71,6 +74,7 @@ function useArticleForm() {
     if (!title.trim()) errors.title = 'Title is required';
     if (!content.trim()) errors.content = 'Content is required';
     if (!categoryId) errors.category = 'Category is required';
+    if (keywords.length < 3) errors.keywords = 'At least 3 keywords are required';
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
   };
@@ -104,6 +108,17 @@ function useArticleForm() {
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
+  // Keyword Handling
+  const handleAddKeyword = () => {
+    if (newKeyword.trim() && !keywords.includes(newKeyword.trim())) {
+      setKeywords([...keywords, newKeyword.trim()]);
+      setNewKeyword('');
+    }
+  };
+  const handleRemoveKeyword = (kw) => {
+    setKeywords(keywords.filter((k) => k !== kw));
+  };
+
   // Publish or Save Draft
   const handlePublish = async (e, status = 'published') => {
     e.preventDefault();
@@ -127,7 +142,9 @@ function useArticleForm() {
     formData.append('author_id', user.id || 1);
     formData.append('status', status);
     formData.append('tags', JSON.stringify(tags));
+    formData.append('keywords', JSON.stringify(keywords));
     if (image) formData.append('image', image);
+    if (customSlug) formData.append('custom_slug', customSlug);
 
     try {
       const response = await fetch('/api/admin/articles', {
@@ -183,6 +200,14 @@ function useArticleForm() {
     formErrors,
     articleStatus,
     setArticleStatus,
+    customSlug,
+    setCustomSlug,
+    keywords,
+    setKeywords,
+    newKeyword,
+    setNewKeyword,
+    handleAddKeyword,
+    handleRemoveKeyword,
   };
 }
 
@@ -387,6 +412,14 @@ export default function AdminPanel() {
     formErrors,
     articleStatus,
     setArticleStatus,
+    customSlug,
+    setCustomSlug,
+    keywords,
+    setKeywords,
+    newKeyword,
+    setNewKeyword,
+    handleAddKeyword,
+    handleRemoveKeyword,
   } = useArticleForm();
 
   // Authentication Check
@@ -552,6 +585,61 @@ export default function AdminPanel() {
                 <CategorySelect categoryId={categoryId} setCategoryId={setCategoryId} categories={categories} error={formErrors.category} />
                 {/* Tags */}
                 <Tags tags={tags} newTag={newTag} setNewTag={setNewTag} handleAddTag={handleAddTag} handleRemoveTag={handleRemoveTag} />
+                {/* Keywords */}
+                <div className="bg-white bg-opacity-80 backdrop-blur-md p-6 rounded-lg shadow-lg transition-all duration-300 animate-fadeIn">
+                  <h3 className="text-lg font-medium text-blue-600 mb-4">Keywords <span className="text-red-500">*</span></h3>
+                  <div className="flex flex-wrap gap-2 mb-4">
+                    {keywords.map((kw) => (
+                      <span key={kw} className="inline-flex items-center bg-green-100 text-green-800 text-sm px-3 py-1 rounded-full">
+                        {kw}
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveKeyword(kw)}
+                          className="ml-1 text-green-600 hover:text-green-800"
+                          aria-label={`Remove ${kw} keyword`}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        </button>
+                      </span>
+                    ))}
+                  </div>
+                  <div className="flex items-center">
+                    <input
+                      type="text"
+                      value={newKeyword}
+                      onChange={e => setNewKeyword(e.target.value)}
+                      onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddKeyword())}
+                      className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-green-500 focus:border-green-500 transition text-sm"
+                      placeholder="Add new keyword"
+                      aria-label="Add new keyword"
+                    />
+                    <button
+                      type="button"
+                      onClick={handleAddKeyword}
+                      className="ml-2 px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition"
+                      aria-label="Add keyword"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  {formErrors.keywords && <p className="text-red-500 text-sm mt-2">{formErrors.keywords}</p>}
+                  <p className="text-xs text-gray-500 mt-1">At least 3 keywords required. Add more for better search results.</p>
+                </div>
+                {/* Custom Link (Slug) */}
+                <div className="bg-white bg-opacity-80 backdrop-blur-md p-6 rounded-lg shadow-lg transition-all duration-300 animate-fadeIn mt-6">
+                  <label htmlFor="custom-slug" className="block text-sm font-medium text-gray-700 mb-1">Custom Link (Slug)</label>
+                  <input
+                    type="text"
+                    id="custom-slug"
+                    value={customSlug}
+                    onChange={e => setCustomSlug(e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500"
+                    placeholder="e.g., my-custom-article"
+                  />
+                  <p className="text-xs text-gray-500 mt-1">This will be the URL: /article/&lt;your-link&gt; <span className='italic'>(optional)</span></p>
+                </div>
               </div>
             </div>
           </form>
