@@ -2,13 +2,11 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import dynamic from 'next/dynamic';
-import 'easymde/dist/easymde.min.css';
 import Sidebar from '../../components/Sidebar.jsx';
 import Image from 'next/image';
-
-// Dynamically import SimpleMDE to avoid SSR issues
-const SimpleMdeReact = dynamic(() => import('react-simplemde-editor'), { ssr: false });
+import TagsInput from '../../components/TagsInput.jsx';
+import ImageUploadEdit from '../../components/ImageUploadEdit.jsx';
+import TiptapEditor from '../../components/TiptapEditor.jsx';
 
 export default function EditArticlePage() {
     const router = useRouter();
@@ -34,6 +32,7 @@ export default function EditArticlePage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState(null);
+    const [user, setUser] = useState(null);
 
     // Fetch Categories and Article Data
     useEffect(() => {
@@ -102,6 +101,20 @@ export default function EditArticlePage() {
             }
         };
     }, [imagePreview]); // Dependency array ensures cleanup runs when preview changes
+
+    // Fetch user info
+    useEffect(() => {
+        const fetchUser = async () => {
+            try {
+                const res = await fetch('/api/auth/me', { cache: 'no-store' });
+                if (res.ok) {
+                    const userData = await res.json();
+                    setUser(userData);
+                }
+            } catch (e) {}
+        };
+        fetchUser();
+    }, []);
 
     // SimpleMDE options (optional)
     const editorOptions = useMemo(() => {
@@ -231,7 +244,7 @@ export default function EditArticlePage() {
     return (
         <div className="flex min-h-screen bg-gray-100">
             {/* Assuming Sidebar is in a layout component */}
-            <Sidebar />
+            <Sidebar role={user?.role} />
             <main className="flex-1 p-8">
                 <h1 className="text-3xl font-bold text-gray-800 mb-6">Edit Article</h1>
 
@@ -252,12 +265,7 @@ export default function EditArticlePage() {
                     {/* Content Editor */}
                     <div>
                         <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-1">Content</label>
-                        <SimpleMdeReact
-                            id="content"
-                            value={content}
-                            onChange={onContentChange}
-                            options={editorOptions}
-                        />
+                        <TiptapEditor value={content} onChange={setContent} />
                     </div>
 
                     {/* Category */}
@@ -292,45 +300,7 @@ export default function EditArticlePage() {
                     </div>
 
                     {/* Tags */}
-                    <div>
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Tags</label>
-                        <div className="flex flex-wrap gap-2 mb-2">
-                            {tags.map((tag) => (
-                                <span key={tag} className="inline-flex items-center bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
-                                    {tag}
-                                    <button
-                                        type="button"
-                                        onClick={() => handleRemoveTag(tag)}
-                                        className="ml-1 text-blue-600 hover:text-blue-800"
-                                        aria-label={`Remove ${tag} tag`}
-                                    >
-                                        <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                                        </svg>
-                                    </button>
-                                </span>
-                            ))}
-                        </div>
-                        <div className="flex items-center">
-                            <input
-                                type="text"
-                                value={newTag}
-                                onChange={e => setNewTag(e.target.value)}
-                                onKeyDown={e => e.key === 'Enter' && (e.preventDefault(), handleAddTag())}
-                                className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 text-sm"
-                                placeholder="Add new tag"
-                                aria-label="Add new tag"
-                            />
-                            <button
-                                type="button"
-                                onClick={handleAddTag}
-                                className="ml-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-                                aria-label="Add tag"
-                            >
-                                Add
-                            </button>
-                        </div>
-                    </div>
+                    <TagsInput tags={tags} newTag={newTag} setNewTag={setNewTag} handleAddTag={handleAddTag} handleRemoveTag={handleRemoveTag} />
 
                     {/* Status */}
                     <div>
@@ -348,45 +318,7 @@ export default function EditArticlePage() {
                     </div>
 
                     {/* Image Upload */}
-                    <div>
-                        <label htmlFor="image-upload" className="block text-sm font-medium text-gray-700 mb-1">Featured Image</label>
-                        <div className="mt-1 flex items-center space-x-4">
-                            {imagePreview && (
-                                <Image
-                                    src={imagePreview}
-                                    alt="Image Preview"
-                                    width={80}
-                                    height={80}
-                                    className="h-20 w-auto object-cover rounded border border-gray-200"
-                                />
-                            )}
-                            <input
-                                type="file"
-                                id="image-upload"
-                                accept="image/jpeg, image/png, image/gif, image/webp" // Accept common image types
-                                onChange={handleImageChange}
-                                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
-                            />
-                            {/* Display currentImageUrl only if no new preview exists and removeImage is false */}
-                            {!imagePreview && currentImageUrl && !removeImage && (
-                                <span className="text-xs text-gray-500">(Current image set)</span>
-                            )}
-                            {/* Show remove button only if there's a current image or a preview */}
-                            {(currentImageUrl || imagePreview) && !removeImage && (
-                                <button
-                                    type="button"
-                                    onClick={handleRemoveImageClick}
-                                    className="text-sm text-red-600 hover:text-red-800"
-                                >
-                                    Remove Image
-                                </button>
-                            )}
-                             {removeImage && <span className="text-xs text-red-500">(Image will be removed on save)</span>}
-                        </div>
-                         {/* Display validation error message */}
-                         {error && error.includes('Invalid file type') && <p className="text-red-500 text-xs mt-1">{error}</p>}
-                         {error && error.includes('exceeds 5MB') && <p className="text-red-500 text-xs mt-1">{error}</p>}
-                    </div>
+                    <ImageUploadEdit imagePreview={imagePreview} currentImageUrl={currentImageUrl} removeImage={removeImage} handleImageChange={handleImageChange} handleRemoveImageClick={handleRemoveImageClick} error={error} />
 
 
                     {/* Submit Button */}

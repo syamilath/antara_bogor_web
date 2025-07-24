@@ -8,21 +8,23 @@ const nextConfig = {
         port: '',
         pathname: '/**', // Allow any path under this hostname
       },
-      // Add localhost for uploaded images (works in both dev and production)
-      {
-        protocol: 'http',
-        hostname: 'localhost',
-        port: '',
-        pathname: '/uploads/**', // Allow paths starting with /uploads/
-      },
       // Add this block for randomuser.me
       {
         protocol: 'https',
         hostname: 'randomuser.me',
         port: '',
+        pathname: '/uploads/**', // Allow paths starting with /uploads/
+      },
+      // Add this for images.unsplash.com
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+        port: '',
         pathname: '/**',
       },
     ],
+    // Allow local images from /public directory
+    unoptimized: false,
   },
 };
 

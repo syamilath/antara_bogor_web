@@ -9,12 +9,6 @@ import { fallbackCategories } from '@/app/page';
 import Image from 'next/image';
    
 
-const getFormattedDate = (dateString, options = { year: 'numeric', month: 'long', day: 'numeric' }) => {
-  if (!dateString) return 'Unknown Date';
-  const date = new Date(dateString);
-  return !isNaN(date.getTime()) ? date.toLocaleDateString('en-US', options) : 'Invalid Date';
-};
-
 export default function ArticlePage() {
   const [article, setArticle] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -137,7 +131,10 @@ export default function ArticlePage() {
       <Head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <meta name="robots" content="index, follow" />
+        <link rel="canonical" href={`https://your-domain.com/article/${article?.slug || ''}`} />
         <title>{article ? `${article.title} - RetroNews` : 'Loading - RetroNews'}</title>
+        <meta name="description" content={article ? article.summary || article.title : 'Loading article...'} />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
         <link href="https://fonts.googleapis.com/css2?family=Tiempos+Headline:wght@400;500;600;700&display=swap" rel="stylesheet" />
       </Head>
@@ -208,8 +205,8 @@ export default function ArticlePage() {
                 <h1 className="text-4xl md:text-5xl font-bold leading-tight text-gray-900 mb-4">{article.title}</h1>
                 <div className="flex items-center gap-4 text-gray-500 text-sm">
                   <Image
-                    src="https://randomuser.me/api/portraits/women/44.jpg"
-                    alt="Author"
+                    src={article.author_profile_photo || "https://randomuser.me/api/portraits/women/44.jpg"}
+                    alt={article.author_name ? `Profile photo of ${article.author_name}` : "Author profile photo"}
                     width={48}
                     height={48}
                     className="w-12 h-12 rounded-full object-cover border-2 border-gray-300"
@@ -220,7 +217,7 @@ export default function ArticlePage() {
               <div>
 <Image
   src={article.image_url || 'https://via.placeholder.com/800x400?text=No+Image'}
-  alt={article.title}
+  alt={article.title || 'Article image'}
   width={800}
   height={400}
   className="w-full h-auto object-contain"
@@ -228,8 +225,18 @@ export default function ArticlePage() {
 
               </div>
               <div className="p-8 text-gray-800 leading-relaxed text-lg space-y-6">
-                {article.content.split('\n').map((paragraph, index) => <p key={index}>{paragraph}</p>)}
+                <div dangerouslySetInnerHTML={{ __html: article.content }} />
               </div>
+              {Array.isArray(article.tags) && article.tags.length > 0 && (
+                <div className="px-8 pb-2 flex flex-wrap gap-2 border-t border-gray-100">
+                  <span className="text-gray-500 text-sm mr-2 mt-4">Tags:</span>
+                  {article.tags.map((tag, idx) => (
+                    <span key={idx} className="inline-block mt-4 bg-blue-100 text-blue-700 text-xs font-semibold px-3 py-1 rounded-full hover:bg-blue-200 transition cursor-pointer">
+                      #{tag}
+                    </span>
+                  ))}
+                </div>
+              )}
               <div className="p-8 text-center border-t border-gray-200">
                 <Link href="/" className="inline-block bg-blue-600 text-white px-6 py-3 rounded-full font-semibold shadow-md hover:bg-blue-700 transition">← Back to Home</Link>
               </div>
@@ -256,7 +263,7 @@ export default function ArticlePage() {
             <p className="text-gray-600 mb-6">Delivering news with a retro-modern twist since 2023. Your trusted source for accurate and timely information from around the globe.</p>
             <div className="flex gap-4">
               {['facebook-f', 'twitter', 'instagram', 'linkedin-in'].map((icon, i) => (
-                <Link key={i} href="#" className="bg-gray-200 hover:bg-blue-600 hover:text-white transition p-3 rounded-full text-gray-600">
+                <Link key={i} href="#" className="bg-gray-200 hover:bg-blue-600 hover:text-white transition p-3 rounded-full text-gray-600" rel="noopener noreferrer">
                   <i className={`fab fa-${icon}`}></i>
                 </Link>
               ))}
@@ -300,6 +307,9 @@ export default function ArticlePage() {
               </li>
             </ul>
           </div>
+        </div>
+        <div className="text-center text-xs text-gray-500 mt-8">
+          Icons made from <a href="https://www.onlinewebfonts.com/icon" target="_blank" rel="noopener noreferrer" className="underline">svg icons</a> is licensed by CC BY 4.0
         </div>
       </footer>
     </>

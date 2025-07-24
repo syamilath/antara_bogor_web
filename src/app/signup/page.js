@@ -13,6 +13,7 @@ export default function SignupPage() {
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const [profilePhoto, setProfilePhoto] = useState(null);
 
   const handleSignup = async (e) => {
     e.preventDefault();
@@ -32,10 +33,16 @@ export default function SignupPage() {
     }
 
     try {
+      const formData = new FormData();
+      formData.append('username', username);
+      formData.append('email', email);
+      formData.append('password', password);
+      if (profilePhoto) {
+        formData.append('profile_photo', profilePhoto);
+      }
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, email, password }),
+        body: formData,
       });
       const data = await response.json();
       if (response.ok) {
@@ -71,7 +78,7 @@ export default function SignupPage() {
           <p className="text-[#a9a9a9] text-sm mt-1">Join our news portal</p>
         </div>
 
-        <form onSubmit={handleSignup} className="space-y-5">
+        <form onSubmit={handleSignup} className="space-y-5" encType="multipart/form-data">
           <div>
             <label htmlFor="username" className="block text-sm font-medium text-[#013f6e] mb-1">
               Username
@@ -124,6 +131,20 @@ export default function SignupPage() {
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               placeholder="••••••••"
+              className="w-full px-4 py-2 border border-[#a9a9a9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#013f6e]"
+            />
+          </div>
+
+          <div>
+            <label htmlFor="profilePhoto" className="block text-sm font-medium text-[#013f6e] mb-1">
+              Profile Photo (optional)
+            </label>
+            <input
+              id="profilePhoto"
+              name="profile_photo"
+              type="file"
+              accept="image/*"
+              onChange={e => setProfilePhoto(e.target.files[0])}
               className="w-full px-4 py-2 border border-[#a9a9a9] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#013f6e]"
             />
           </div>

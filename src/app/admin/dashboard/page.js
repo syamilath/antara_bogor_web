@@ -3,11 +3,28 @@
 import { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar.jsx';
 import Link from 'next/link';
+import StatCard from '../components/StatCard.jsx';
+import TopArticlesTable from '../components/TopArticlesTable.jsx';
 
 export default function DashboardPage() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    // Fetch user info
+    const fetchUser = async () => {
+      try {
+        const res = await fetch('/api/auth/me', { cache: 'no-store' });
+        if (res.ok) {
+          const userData = await res.json();
+          setUser(userData);
+        }
+      } catch (e) {}
+    };
+    fetchUser();
+  }, []);
 
   useEffect(() => {
     let intervalId;
@@ -31,16 +48,34 @@ export default function DashboardPage() {
 
     fetchStats(); // Initial fetch
 
-    // Poll every 5 seconds
-    intervalId = setInterval(fetchStats, 5000);
+    // Poll every 2 minutes (120,000 ms)
+    intervalId = setInterval(fetchStats, 120000);
 
     // Cleanup on unmount
     return () => clearInterval(intervalId);
   }, []);
 
+  // Manual reload handler
+  const handleManualReload = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch('/api/admin/analytics/traffic?ts=' + Date.now(), {
+        cache: 'no-store'
+      });
+      if (!response.ok) throw new Error('Failed to fetch traffic data');
+      const data = await response.json();
+      setStats(data);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <Sidebar />
+      <Sidebar role={user?.role} />
       <main className="flex-1 p-6 sm:p-10 md:p-12">
         <h1 className="text-4xl font-extrabold text-gray-800 mb-10 tracking-tight drop-shadow-sm">Dashboard</h1>
         {loading && <div className="text-center text-lg text-blue-600 animate-pulse">Loading dashboard data...</div>}
@@ -58,33 +93,32 @@ export default function DashboardPage() {
                 <svg className="h-6 w-6 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 17v-2a4 4 0 014-4h4m0 0V7m0 4h-4" /></svg>
                 Top News Articles
               </h2>
-              <div className="overflow-x-auto rounded-xl">
-                <table className="min-w-full text-base bg-white rounded-xl shadow divide-y divide-blue-100">
-                  <thead>
-                    <tr className="bg-blue-50">
-                      <th className="px-6 py-3 text-left font-bold text-blue-700 uppercase tracking-wider rounded-tl-xl">Title</th>
-                      <th className="px-6 py-3 text-right font-bold text-blue-700 uppercase tracking-wider rounded-tr-xl">Visits</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {stats.topPages
-                      .filter(page => page.path.startsWith('/article/'))
-                      .map((page, idx) => (
-                        <tr key={page.path} className="border-b last:border-b-0 hover:bg-blue-50/60 transition group">
-                          <td className="px-6 py-4">
-                            <Link href={page.path} className="text-blue-800 group-hover:text-blue-600 font-semibold underline underline-offset-2 decoration-blue-200 hover:decoration-blue-500 transition-all duration-150" target="_blank" rel="noopener noreferrer">
-                              {page.title || decodeURIComponent(page.path.replace('/article/', '').replace(/-/g, ' ')).replace(/\b\w/g, l => l.toUpperCase())}
-                            </Link>
-                          </td>
-                          <td className="px-6 py-4 text-right font-bold text-gray-700 group-hover:text-blue-700 text-lg">{page.visits}</td>
-                        </tr>
-                      ))}
-                  </tbody>
-                </table>
-                {stats.topPages.filter(page => page.path.startsWith('/article/')).length === 0 && (
-                  <div className="text-center text-gray-400 py-6">No news article visits yet.</div>
-                )}
-              </div>
+              <TopArticlesTable topPages={stats.topPages} />
+            </div>
+            {/* Manual Reload Button */}
+            <div className="flex justify-center mt-8">
+              <button
+                onClick={handleManualReload}
+                className="px-6 py-2 bg-blue-600 text-white rounded-lg shadow hover:bg-blue-700 transition flex items-center justify-center gap-2 disabled:opacity-50"
+                disabled={loading}
+                aria-label="Reload dashboard data"
+              >
+                <svg
+                  className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`}
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 4v5h5M20 20v-5h-5M5.07 19.07A9 9 0 1112 21a9 9 0 01-6.93-1.93"
+                  />
+                </svg>
+                <span className="ml-2">{loading ? 'Reloading...' : 'Reload'}</span>
+              </button>
             </div>
           </>
         )}
@@ -92,16 +126,6 @@ export default function DashboardPage() {
           <div className="text-center text-gray-400 text-lg">No dashboard data available.</div>
         )}
       </main>
-    </div>
-  );
-}
-
-function StatCard({ title, value, icon }) {
-  return (
-    <div className="bg-white/90 backdrop-blur-md p-6 rounded-2xl shadow-lg flex flex-col items-center justify-center border border-blue-100 hover:shadow-2xl transition-all duration-200">
-      <div className="text-3xl mb-2">{icon}</div>
-      <h3 className="text-sm font-semibold text-blue-700 uppercase mb-1 tracking-wider">{title}</h3>
-      <p className="text-4xl font-extrabold text-gray-900 drop-shadow">{value}</p>
     </div>
   );
 }

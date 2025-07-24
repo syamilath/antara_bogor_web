@@ -36,7 +36,7 @@ export default function LoginPage() {
         localStorage.setItem('isLoggedIn', 'true');
         localStorage.setItem('userRole', data.role);
 
-        if (data.role === 'admin') {
+        if (data.role === 'admin' || data.role === 'writer') {
           router.push('/admin');
         } else {
           router.push('/');

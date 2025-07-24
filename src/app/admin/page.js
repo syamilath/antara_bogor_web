@@ -4,23 +4,21 @@ import { useState, useEffect, useCallback } from 'react';
 import dynamic from 'next/dynamic';
 import { useRouter, usePathname } from 'next/navigation'; // Ensure useRouter is imported
 import Link from 'next/link';
-import 'easymde/dist/easymde.min.css';
 import Sidebar from './components/Sidebar.jsx';
 import Image from 'next/image';
-
-const EasyMDE = dynamic(() => import('react-simplemde-editor').then((mod) => mod.default), { ssr: false });
-
-// EasyMDE Configuration
-const mdeOptions = {
-  spellChecker: false,
-  // Customize toolbar, shortcuts, or other options as needed
-};
+import ImageUpload from './components/ImageUpload.jsx';
+import CategorySelect from './components/CategorySelect.jsx';
+import Tags from './components/Tags.jsx';
+import PublishSettings from './components/PublishSettings.jsx';
+// Remove direct import of TiptapEditor
+// import TiptapEditor from './components/TiptapEditor.jsx';
+const TiptapEditor = dynamic(() => import('./components/TiptapEditor.jsx'), { ssr: false });
 
 // Custom Hook for Article Form Logic
 function useArticleForm() {
   // Form State
   const [title, setTitle] = useState('');
-  const [content, setContent] = useState('');
+  const [content, setContent] = useState('<p></p>');
   const [categoryId, setCategoryId] = useState('');
   const [categories, setCategories] = useState([]);
   const [image, setImage] = useState(null);
@@ -68,11 +66,27 @@ function useArticleForm() {
     fetchData();
   }, []);
 
+  // Helper to extract text from HTML robustly
+  const getTextFromHTML = (html) => {
+    if (typeof window !== 'undefined') {
+      const div = document.createElement('div');
+      div.innerHTML = html;
+      return div.textContent || div.innerText || '';
+    }
+    // Fallback for SSR (shouldn't be needed in client-side validation)
+    return html.replace(/<(.|\n)*?>/g, '').trim();
+  };
+
   // Form Validation
   const validateForm = () => {
     const errors = {};
+    // Remove all tags except <img>
+    const textOnly = content.replace(/<(?!img\b)[^>]*>/gi, '').replace(/&nbsp;/g, '').trim();
+    const hasText = textOnly.replace(/<img[^>]*>/gi, '').trim().length > 0;
+    const hasImage = /<img\s+[^>]*src=/.test(content);
+
     if (!title.trim()) errors.title = 'Title is required';
-    if (!content.trim()) errors.content = 'Content is required';
+    if (!hasText && !hasImage) errors.content = 'Content is required';
     if (!categoryId) errors.category = 'Category is required';
     if (keywords.length < 3) errors.keywords = 'At least 3 keywords are required';
     setFormErrors(errors);
@@ -211,179 +225,6 @@ function useArticleForm() {
   };
 }
 
-// Image Upload Component
-function ImageUpload({ image, imagePreview, handleImageChange }) {
-  const cardStyle = 'bg-white bg-opacity-80 backdrop-blur-md p-6 rounded-lg shadow-lg transition-all duration-300 animate-fadeIn';
-  return (
-    <div className={cardStyle}>
-      <label htmlFor="image" className="block text-sm font-medium text-gray-700 mb-2">
-        Featured Image
-      </label>
-      <div className="relative w-full h-48 bg-gray-100 rounded-lg flex flex-col items-center justify-center overflow-hidden border-2 border-dashed border-gray-300 hover:border-blue-400 transition">
-        {imagePreview ? (
-          <Image
-            src={imagePreview}
-            alt="Selected image"
-            fill
-            className="object-cover"
-            style={{ width: '100%', height: '100%', position: 'absolute' }}
-          />
-        ) : (
-          <>
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-            <p className="text-gray-500 mt-2 text-sm">Drag & drop or click to upload</p>
-          </>
-        )}
-        <input
-          id="image"
-          type="file"
-          accept="image/jpeg,image/png"
-          onChange={handleImageChange}
-          className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-          aria-label="Upload featured image"
-        />
-      </div>
-      {image && <p className="text-sm text-gray-500 mt-2">Selected: {image.name}</p>}
-    </div>
-  );
-}
-
-// Category Select Component
-function CategorySelect({ categoryId, setCategoryId, categories, error }) {
-  const cardStyle = 'bg-white bg-opacity-80 backdrop-blur-md p-6 rounded-lg shadow-lg transition-all duration-300 animate-fadeIn';
-  return (
-    <div className={cardStyle}>
-      <h3 className="text-lg font-medium text-blue-600 mb-4">Categories</h3>
-      <div className="mb-4">
-        <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-2">
-          Primary Category
-        </label>
-        <select
-          id="category"
-          value={categoryId}
-          onChange={(e) => setCategoryId(e.target.value)}
-          className={`w-full px-4 py-2 rounded-lg border ${error ? 'border-red-500' : 'border-gray-300'} focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition`}
-          required
-          aria-required="true"
-          aria-label="Select primary category"
-          aria-invalid={!!error}
-          aria-describedby={error ? 'category-error' : undefined}
-        >
-          {categories.length > 0 ? (
-            categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.name}
-              </option>
-            ))
-          ) : (
-            <option value="">No categories available</option>
-          )}
-        </select>
-        {error && (
-          <p id="category-error" className="text-red-500 text-sm mt-1">
-            {error}
-          </p>
-        )}
-      </div>
-    </div>
-  );
-}
-
-// Tags Component
-function Tags({ tags, newTag, setNewTag, handleAddTag, handleRemoveTag }) {
-  const cardStyle = 'bg-white bg-opacity-80 backdrop-blur-md p-6 rounded-lg shadow-lg transition-all duration-300 animate-fadeIn';
-  return (
-    <div className={cardStyle}>
-      <h3 className="text-lg font-medium text-blue-600 mb-4">Tags</h3>
-      <div className="flex flex-wrap gap-2 mb-4">
-        {tags.map((tag) => (
-          <span key={tag} className="inline-flex items-center bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
-            {tag}
-            <button
-              onClick={() => handleRemoveTag(tag)}
-              className="ml-1 text-blue-600 hover:text-blue-800"
-              aria-label={`Remove ${tag} tag`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-              </svg>
-            </button>
-          </span>
-        ))}
-      </div>
-      <div className="flex items-center">
-        <input
-          type="text"
-          value={newTag}
-          onChange={(e) => setNewTag(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleAddTag()}
-          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition text-sm"
-          placeholder="Add new tag"
-          aria-label="Add new tag"
-        />
-        <button
-          type="button"
-          onClick={handleAddTag}
-          className="ml-2 px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
-          aria-label="Add tag"
-        >
-          Add
-        </button>
-      </div>
-    </div>
-  );
-}
-
-// Publish Settings Component
-function PublishSettings({ isPublishing, handlePublish, handleSaveDraft, publishStatus, articleStatus, setArticleStatus }) {
-  const cardStyle = 'bg-white bg-opacity-80 backdrop-blur-md p-6 rounded-lg shadow-lg transition-all duration-300 animate-fadeIn';
-  return (
-    <div className={cardStyle}>
-      <h3 className="text-lg font-medium text-blue-600 mb-4">Publish Settings</h3>
-      <div className="mb-4">
-        <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-2">
-          Status
-        </label>
-        <select
-          id="status"
-          value={articleStatus}
-          onChange={(e) => setArticleStatus(e.target.value)}
-          className="w-full px-4 py-2 rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition"
-          aria-label="Set article status"
-        >
-          <option value="draft">Draft</option>
-          <option value="published">Published</option>
-        </select>
-      </div>
-      {publishStatus && (
-        <div
-          className={`mb-6 p-4 rounded-lg flex items-center ${
-            publishStatus.startsWith('Success') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
-          }`}
-          role="alert"
-        >
-          <svg
-            className="h-5 w-5 mr-2"
-            xmlns="http://www.w3.org/2000/svg"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            {publishStatus.startsWith('Success') ? (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M5 13l4 4L19 7" />
-            ) : (
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            )}
-          </svg>
-          {publishStatus}
-        </div>
-      )}
-    </div>
-  );
-}
-
 // Main Admin Panel Component
 export default function AdminPanel() {
   const router = useRouter();
@@ -427,6 +268,9 @@ export default function AdminPanel() {
     if (!user && publishStatus.includes('Please log in')) {
       router.push('/login');
     }
+    if (user && user.role === 'admin' && typeof window !== 'undefined' && window.location.pathname === '/admin') {
+      router.push('/admin/dashboard');
+    }
   }, [user, publishStatus, router]);
 
   // Memoized Editor Change Handler
@@ -455,10 +299,10 @@ export default function AdminPanel() {
   }
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex min-h-screen h-screen bg-gray-100">
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
-        <Sidebar />
+        <Sidebar role={user.role} />
       </div>
 
       {/* Mobile Sidebar Toggle */}
@@ -478,7 +322,7 @@ export default function AdminPanel() {
       {/* Mobile Sidebar */}
       <div className={`fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden transition-opacity ${isMobileSidebarOpen ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}>
         <div className={`absolute left-0 top-0 h-full w-64 transform ${isMobileSidebarOpen ? 'translate-x-0' : '-translate-x-full'} transition-transform duration-300 ease-in-out`}>
-          <Sidebar isMobile={true} onClose={toggleMobileSidebar} />
+          <Sidebar isMobile={true} onClose={toggleMobileSidebar} role={user.role} />
         </div>
       </div>
 
@@ -551,17 +395,7 @@ export default function AdminPanel() {
                   <label htmlFor="content" className="block text-sm font-medium text-gray-700 mb-2">
                     Article Content
                   </label>
-                  {typeof window !== 'undefined' && (
-                    <EasyMDE
-                      id="content"
-                      value={content}
-                      onChange={handleEditorChange}
-                      options={mdeOptions}
-                      className="mt-1 block w-full rounded-lg border border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 sm:text-sm"
-                      aria-label="Article Content"
-                      aria-describedby={formErrors.content ? 'content-error' : undefined}
-                    />
-                  )}
+                  <TiptapEditor value={content} onChange={setContent} />
                   {formErrors.content && (
                     <p id="content-error" className="text-red-500 text-sm mt-1">
                       {formErrors.content}

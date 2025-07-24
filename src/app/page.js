@@ -101,7 +101,6 @@ const popularArticles = [
   },
 ];
 
-
 // Main RetroNews Component
 export default function RetroNews() {
   // State
@@ -111,7 +110,6 @@ export default function RetroNews() {
   const [error, setError] = useState(null);
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [isScrolled, setIsScrolled] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const navMenuRef = useRef(null);
   const router = useRouter();
 
@@ -389,17 +387,17 @@ export default function RetroNews() {
               <TimeCard />
             </div>
           </div>
-          <nav className="neumorphic-nav p-4 flex items-center justify-between" role="navigation">
+          <nav className="neumorphic-nav p-2 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-4" role="navigation">
             <ul
               ref={navMenuRef}
-              className="flex space-x-6 overflow-x-auto pb-2 scrollbar-hide"
+              className="flex space-x-2 sm:space-x-6 overflow-x-auto whitespace-nowrap w-full justify-start px-2 custom-horizontal-scrollbar"
               tabIndex={0}
             >
               <li>
                 <button
                   role="button"
                   onClick={() => handleCategoryClick('all')}
-                  className={`nav-link py-2 px-1 ${selectedCategory === 'all' ? 'active-nav' : ''}`}
+                  className={`nav-link py-1 sm:py-2 px-2 sm:px-1 text-sm sm:text-base ${selectedCategory === 'all' ? 'active-nav' : ''}`}
                 >
                   All
                 </button>
@@ -409,7 +407,7 @@ export default function RetroNews() {
                   <button
                     role="button"
                     onClick={() => handleCategoryClick(category.slug)}
-                    className={`nav-link py-2 px-1 font-bold transition-all duration-300 ease-in-out ${selectedCategory === category.slug ? 'active-nav' : ''}`}
+                    className={`nav-link py-1 sm:py-2 px-2 sm:px-1 text-sm sm:text-base font-bold transition-all duration-300 ease-in-out ${selectedCategory === category.slug ? 'active-nav' : ''}`}
                   >
                     {category.name}
                   </button>
@@ -417,24 +415,24 @@ export default function RetroNews() {
               ))}
             </ul>
             {/* Search Bar */}
-            <div className="flex justify-center my-6">
+            <div className="flex justify-center my-4 sm:my-6 px-2 w-full sm:w-auto">
               <form
                 action="/search"
                 method="get"
-                className="flex items-center bg-white rounded-full shadow-md px-4 py-2 w-full max-w-xl border border-gray-200 focus-within:ring-2 focus-within:ring-blue-400"
+                className="flex flex-row items-stretch bg-white rounded-full shadow-md px-2 sm:px-4 py-2 w-full max-w-full sm:max-w-md md:max-w-lg lg:max-w-xl border border-gray-200 focus-within:ring-2 focus-within:ring-blue-400 gap-2"
                 style={{ boxShadow: '0 2px 12px 0 rgba(0,0,0,0.06)' }}
               >
                 <input
                   type="text"
                   name="q"
                   placeholder="Search news by keyword, title, or tag..."
-                  className="flex-1 bg-transparent outline-none px-2 py-1 text-lg text-gray-700"
+                  className="flex-1 bg-transparent outline-none px-2 py-2 text-base sm:text-lg text-gray-700 rounded-full sm:rounded-none"
                   required
                   aria-label="Search news"
                 />
                 <button
                   type="submit"
-                  className="ml-2 px-4 py-2 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition"
+                  className="px-4 py-2 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition text-base whitespace-nowrap flex-shrink-0"
                   aria-label="Search"
                 >
                   Search
@@ -472,18 +470,19 @@ export default function RetroNews() {
           height: 3.2rem; /* Increased height for better fit */
         }
       `}</style>
-      <div className="w-full bg-[#e8f0fa] shadow-[0_4px_24px_0_rgba(0,0,0,0.08)] rounded-2xl py-2 px-4 flex items-center overflow-x-auto whitespace-nowrap mb-8 border border-[#e0e7ef] mt-6 mx-auto max-w-[95vw]" style={{marginTop: '1.5rem', marginBottom: '2rem'}}>
-      <span className="flex items-center bg-white text-[#d7263d] font-bold px-4 py-1 rounded-full text-base sm:text-lg mr-4 flex-shrink-0 h-12 shadow-lg" style={{height: '2.8rem'}}>
-          <svg className="w-5 h-5 mr-2 text-[#d7263d]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+      <div className="w-full bg-[#e8f0fa] shadow-[0_4px_24px_0_rgba(0,0,0,0.08)] rounded-2xl py-2 px-2 sm:px-4 flex flex-row items-center overflow-x-auto whitespace-nowrap mb-8 border border-[#e0e7ef] mt-6 mx-auto max-w-[95vw]" style={{marginTop: '1.5rem', marginBottom: '2rem'}}>
+        <span className="flex items-center bg-white text-[#d7263d] font-bold px-2 sm:px-4 py-1 rounded-full text-xs sm:text-base lg:text-lg mr-2 flex-shrink-0 h-8 sm:h-12 shadow-lg" style={{height: '2rem', minHeight: '2em'}}>
+          <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2 text-[#d7263d]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
           </svg>
-          BREAKING NEWS
+          <span className="hidden sm:inline">BREAKING NEWS</span>
+          <span className="sm:hidden">BREAKING</span>
         </span>
         <div className="flex-1 min-w-0 overflow-hidden">
-          <div className="neumorph-animate-marquee group-hover:[animation-play-state:paused] items-center pl-8 pr-8 rounded-full bg-[#e8f0fa] py-1 shadow-[0_2px_8px_0_rgba(0,0,0,0.03)]" style={{height: '2.8rem'}}>
+          <div className="neumorph-animate-marquee group-hover:[animation-play-state:paused] items-center pl-2 sm:pl-8 pr-2 sm:pr-8 rounded-full bg-[#e8f0fa] py-1 shadow-[0_2px_8px_0_rgba(0,0,0,0.03)]" style={{height: '2rem', minHeight: '2rem'}}>
             {articlesToday && articlesToday.length > 0 ? (
               [...articlesToday, ...articlesToday].map((article, index) => (
-                <span key={index} className="text-[#013f6e] font-semibold text-base sm:text-lg hover:text-[#d7263d] transition h-[2.2rem] w-full flex items-center justify-center text-center mr-8 sm:mr-12 p-1" style={{height: '2.2rem', minWidth: '7rem'}}>
+                <span key={index} className="text-[#013f6e] font-semibold text-xs sm:text-base lg:text-lg hover:text-[#d7263d] transition h-[1.5rem] sm:h-[2.2rem] w-full flex items-center justify-center text-center mr-4 sm:mr-8 lg:mr-12 p-1" style={{height: '1.5rem', minWidth: '6rem'}}>
                   <Link href={`/article/${article.slug}`}>{article.title}</Link>
                 </span>
               ))
@@ -493,7 +492,7 @@ export default function RetroNews() {
                 "Please check back later.",
                 "Thank you for visiting us!"
               ].map((msg, index) => (
-                <span key={index} className="text-[#013f6e] font-semibold text-base sm:text-lg h-[2.2rem] w-full flex items-center justify-center text-center mr-8 sm:mr-12 p-1" style={{height: '2.2rem', minWidth: '7rem'}}>
+                <span key={index} className="text-[#013f6e] font-semibold text-xs sm:text-base lg:text-lg h-[1.5rem] sm:h-[2.2rem] w-full flex items-center justify-center text-center mr-4 sm:mr-8 lg:mr-12 p-1" style={{height: '1.5rem', minWidth: '6rem'}}>
                   {msg}
                 </span>
               ))
@@ -764,6 +763,9 @@ export default function RetroNews() {
             © 2025 ANTARABOGOR. All rights reserved. | Designed with{' '}
             <i className="fas fa-heart text-[var(--secondary)] mx-1"></i> for news enthusiasts
           </p>
+        </div>
+        <div className="text-center text-xs text-gray-500 mt-8">
+          Icons made from <a href="https://www.onlinewebfonts.com/icon" target="_blank" rel="noopener noreferrer" className="underline">svg icons</a> is licensed by CC BY 4.0
         </div>
       </footer>
     </div>

@@ -14,7 +14,7 @@ async function verifyAdmin(request) {
 
     try {
         const decoded = jwt.verify(token, JWT_SECRET);
-        return decoded.role === 'admin' ? decoded : null;
+        return (decoded.role === 'admin' || decoded.role === 'writer') ? decoded : null;
     } catch (error) {
         console.error('Admin verification failed:', error.message);
         return null;
@@ -23,40 +23,64 @@ async function verifyAdmin(request) {
 
 // --- GET: Fetch placeholder traffic stats ---
 export async function GET(request) {
-    const adminUser = await verifyAdmin(request);
-    if (!adminUser) {
+    const user = await verifyAdmin(request);
+    if (!user) {
         return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
     try {
-        // Get total visits (all page_views)
-        const [totalVisitsRow] = await query('SELECT COUNT(*) as count FROM page_views');
-        const totalVisits = totalVisitsRow?.count || 0;
+        let totalVisits = 0;
+        let uniqueVisitors = 0;
+        let pageViews = 0;
+        let topPages = [];
 
-        // Get unique visitors (by user_id or IP if available)
-        const [uniqueVisitorsRow] = await query('SELECT COUNT(DISTINCT user_id) as count FROM page_views');
-        const uniqueVisitors = uniqueVisitorsRow?.count || 0;
+        if (user.role === 'admin') {
+            // Admin: all stats
+            const [totalVisitsRow] = await query('SELECT COUNT(*) as count FROM page_views');
+            totalVisits = totalVisitsRow?.count || 0;
 
-        // Get total page views (same as totalVisits for now)
-        const pageViews = totalVisits;
+            const [uniqueVisitorsRow] = await query('SELECT COUNT(DISTINCT user_id) as count FROM page_views');
+            uniqueVisitors = uniqueVisitorsRow?.count || 0;
 
-        // Get bounce rate (placeholder, or calculate if you have session data)
-        const bounceRate = '0%';
+            pageViews = totalVisits;
 
-        // Get all articles and their slugs
-        const articles = await query('SELECT slug, title, visits FROM articles ORDER BY visits DESC LIMIT 10');
-        const topPages = articles.map(article => ({
-            path: `/article/${article.slug}`,
-            visits: article.visits,
-            title: article.title,
-        }));
+            const articles = await query('SELECT slug, title, visits FROM articles ORDER BY visits DESC LIMIT 10');
+            topPages = articles.map(article => ({
+                path: `/article/${article.slug}`,
+                visits: article.visits,
+                title: article.title,
+            }));
+        } else {
+            // Writer: only their own articles
+            const articles = await query('SELECT id, slug, title, visits FROM articles WHERE author_id = ? ORDER BY visits DESC LIMIT 10', [user.userId]);
+            const articleIds = articles.map(a => a.id);
+
+            if (articleIds.length > 0) {
+                const idsString = articleIds.join(',');
+                const [totalVisitsRow] = await query(`SELECT COUNT(*) as count FROM page_views WHERE article_id IN (${idsString})`);
+                totalVisits = totalVisitsRow?.count || 0;
+
+                const [uniqueVisitorsRow] = await query(`SELECT COUNT(DISTINCT user_id) as count FROM page_views WHERE article_id IN (${idsString})`);
+                uniqueVisitors = uniqueVisitorsRow?.count || 0;
+
+                pageViews = totalVisits;
+
+                topPages = articles.map(article => ({
+                    path: `/article/${article.slug}`,
+                    visits: article.visits,
+                    title: article.title,
+                }));
+            }
+        }
+
+        const bounceRate = '0%'; // Placeholder
 
         return NextResponse.json({
             totalVisits,
             uniqueVisitors,
             pageViews,
             bounceRate,
-            topPages: topPages,
+            topPages,
         });
     } catch (error) {
         console.error('Failed to fetch real analytics:', error);

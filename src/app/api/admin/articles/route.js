@@ -18,7 +18,7 @@ async function verifyAdmin(request) {
 
   try {
     const decoded = jwt.verify(token, JWT_SECRET);
-    return decoded.role === "admin" ? decoded : null;
+    return (decoded.role === "admin" || decoded.role === "writer") ? decoded : null;
   } catch (error) {
     console.error("Admin verification failed:", error.message);
     return null;
@@ -27,29 +27,49 @@ async function verifyAdmin(request) {
 
 // --- GET: Fetch all articles (for admin manage page) ---
 export async function GET(request) {
-  const adminUser = await verifyAdmin(request);
-  if (!adminUser) {
+  const user = await verifyAdmin(request);
+  if (!user) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
   try {
-    // Fetch articles with category and author names
-    // Use GROUP_CONCAT to get tags as a comma-separated string
-    const articles = await query(`
-            SELECT
-                a.id, a.title, a.slug, a.status, a.created_at, -- Removed a.published_at
-                a.image_url,
-                c.name AS category_name, c.id AS category_id,
-                u.username AS author_name,
-                GROUP_CONCAT(t.name SEPARATOR ', ') AS tags_concatenated
-            FROM articles a
-            LEFT JOIN categories c ON a.category_id = c.id
-            LEFT JOIN users u ON a.author_id = u.id
-            LEFT JOIN article_tags at ON a.id = at.article_id
-            LEFT JOIN tags t ON at.tag_id = t.id
-            GROUP BY a.id -- Group by article ID to aggregate tags
-            ORDER BY a.created_at DESC
-        `);
+    let articles;
+    if (user.role === 'admin') {
+      // Admin: fetch all articles
+      articles = await query(`
+        SELECT
+          a.id, a.title, a.slug, a.status, a.created_at,
+          a.image_url,
+          c.name AS category_name, c.id AS category_id,
+          u.username AS author_name,
+          GROUP_CONCAT(t.name SEPARATOR ', ') AS tags_concatenated
+        FROM articles a
+        LEFT JOIN categories c ON a.category_id = c.id
+        LEFT JOIN users u ON a.author_id = u.id
+        LEFT JOIN article_tags at ON a.id = at.article_id
+        LEFT JOIN tags t ON at.tag_id = t.id
+        GROUP BY a.id
+        ORDER BY a.created_at DESC
+      `);
+    } else {
+      // Writer: fetch only their own articles
+      articles = await query(`
+        SELECT
+          a.id, a.title, a.slug, a.status, a.created_at,
+          a.image_url,
+          c.name AS category_name, c.id AS category_id,
+          u.username AS author_name,
+          GROUP_CONCAT(t.name SEPARATOR ', ') AS tags_concatenated
+        FROM articles a
+        LEFT JOIN categories c ON a.category_id = c.id
+        LEFT JOIN users u ON a.author_id = u.id
+        LEFT JOIN article_tags at ON a.id = at.article_id
+        LEFT JOIN tags t ON at.tag_id = t.id
+        WHERE a.author_id = ?
+        GROUP BY a.id
+        ORDER BY a.created_at DESC
+      `, [user.userId]);
+    }
 
     // Optional: Convert concatenated tags string back to array if needed by frontend
     const articlesWithTagsArray = articles.map((article) => ({
@@ -59,10 +79,9 @@ export async function GET(request) {
         : [],
     }));
 
-    return NextResponse.json(articlesWithTagsArray); // Send articles with tags array
+    return NextResponse.json(articlesWithTagsArray);
   } catch (error) {
     console.error("Failed to fetch admin articles:", error);
-    // Log the specific SQL error if available
     console.error(
       "Database query error details:",
       error.sqlMessage || error.message

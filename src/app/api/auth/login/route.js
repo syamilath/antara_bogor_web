@@ -20,7 +20,7 @@ export async function POST(request) {
     console.log(`Login attempt for username: ${username}`);
 
     // --- Database Authentication Logic ---
-    const users = await query('SELECT id, username, email, password_hash FROM users WHERE username = ?', [username]);
+    const users = await query('SELECT id, username, email, password_hash, role FROM users WHERE username = ?', [username]);
 
     if (users.length === 0) {
       console.log(`Login failed: No user found for username ${username}`);
@@ -35,7 +35,7 @@ export async function POST(request) {
       return NextResponse.json({ error: 'Invalid credentials' }, { status: 401 });
     }
 
-    const userRole = 'admin'; // Modify logic here if you plan to differentiate roles in the future
+    const userRole = user.role;
     console.log(`Login successful for user: ${user.username} (ID: ${user.id}), Assigned Role: ${userRole}`);
 
     const tokenPayload = {
