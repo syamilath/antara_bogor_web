@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Custom Modals Demo</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 0 auto; 
+            padding: 20px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .demo-section { 
+            margin: 20px 0; 
+            padding: 20px; 
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        button { 
+            padding: 12px 20px; 
+            margin: 10px; 
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white; 
+            border: none; 
+            border-radius: 8px; 
+            cursor: pointer;
+            font-weight: 500;
+            transition: transform 0.2s;
+        }
+        button:hover { 
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .preview-image {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            margin: 10px 0;
+        }
+        .feature-list {
+            list-style: none;
+            padding: 0;
+        }
+        .feature-list li {
+            padding: 8px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .feature-list li:before {
+            content: "✅ ";
+            margin-right: 8px;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 Custom Alert & Modal System</h1>
+    <p>Beautiful, modern modals and notifications for the signup process with automatic E2E encryption.</p>
+
+    <div class="demo-section">
+        <h2>🔐 New Signup Experience</h2>
+        <p>The signup process now includes:</p>
+        <ul class="feature-list">
+            <li><strong>Loading Modal</strong> - Shows encryption setup progress</li>
+            <li><strong>Success Modal</strong> - Beautiful confirmation with security details</li>
+            <li><strong>Encryption Info</strong> - Clear explanation of security features</li>
+            <li><strong>Smooth Animations</strong> - Professional transitions and effects</li>
+        </ul>
+        
+        <h3>📱 What Users Will See:</h3>
+        
+        <h4>1. Enhanced Signup Form</h4>
+        <p>The signup form now includes a security information panel explaining automatic E2E encryption:</p>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; border-left: 4px solid #007bff;">
+            <strong>🔐 Automatic Security Protection</strong><br>
+            Your account will be automatically protected with <strong>end-to-end encryption</strong> using your password. 
+            This ensures your personal data, article drafts, and messages are secure and private.
+            <ul style="margin: 10px 0; font-size: 12px; color: #666;">
+                <li>• AES-256 encryption for maximum security</li>
+                <li>• Your password is used as the encryption key</li>
+                <li>• Data is encrypted before being stored</li>
+                <li>• Only you can decrypt your information</li>
+            </ul>
+        </div>
+
+        <h4>2. Loading Process</h4>
+        <p>When creating account, users see a beautiful loading modal with progress steps:</p>
+        <div style="background: #f8f9fa; padding: 15px; border-radius: 8px;">
+            <strong>Creating Your Secure Account</strong><br>
+            <div style="margin: 10px 0;">
+                ✅ Creating user account...<br>
+                🔄 Generating encryption keys...<br>
+                ⏳ Setting up end-to-end encryption...<br>
+                ⏳ Configuring security features...<br>
+                ⏳ Finalizing account setup...
+            </div>
+            <div style="background: #e9ecef; height: 4px; border-radius: 2px; margin: 10px 0;">
+                <div style="background: linear-gradient(90deg, #007bff, #6f42c1); height: 100%; width: 40%; border-radius: 2px;"></div>
+            </div>
+        </div>
+
+        <h4>3. Success Confirmation</h4>
+        <p>After successful account creation, users see a celebration modal:</p>
+        <div style="background: linear-gradient(135deg, #d4edda, #c3e6cb); padding: 20px; border-radius: 12px; text-align: center;">
+            <div style="font-size: 24px; margin-bottom: 10px;">🎉 Account Created with Security!</div>
+            <p>Your account has been created with end-to-end encryption automatically enabled for maximum security!</p>
+            
+            <div style="background: rgba(255,255,255,0.8); padding: 15px; border-radius: 8px; margin: 15px 0;">
+                <strong>🔐 Security Features Activated</strong>
+                <div style="text-align: left; margin-top: 10px; font-size: 12px;">
+                    • End-to-end encryption enabled<br>
+                    • Personal data protection active<br>
+                    • Secure messaging available<br>
+                    • Article draft encryption ready
+                </div>
+            </div>
+            
+            <button style="background: linear-gradient(90deg, #007bff, #28a745); margin: 5px;">Continue to Login</button>
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>🚀 Implementation Details</h2>
+        
+        <h3>Components Created:</h3>
+        <ul class="feature-list">
+            <li><code>SuccessModal.jsx</code> - Beautiful success confirmation modal</li>
+            <li><code>LoadingModal.jsx</code> - Animated loading progress modal</li>
+            <li><code>Notification.jsx</code> - Toast-style notifications</li>
+        </ul>
+
+        <h3>Features:</h3>
+        <ul class="feature-list">
+            <li>Smooth animations and transitions</li>
+            <li>Progress indicators for loading states</li>
+            <li>Gradient backgrounds and modern styling</li>
+            <li>Responsive design for all screen sizes</li>
+            <li>Automatic encryption status detection</li>
+            <li>Clear security feature explanations</li>
+        </ul>
+
+        <h3>User Experience Improvements:</h3>
+        <ul class="feature-list">
+            <li>No more basic browser alerts</li>
+            <li>Clear visual feedback during account creation</li>
+            <li>Professional, trustworthy appearance</li>
+            <li>Educational content about security features</li>
+            <li>Smooth flow from signup to login</li>
+        </ul>
+    </div>
+
+    <div class="demo-section">
+        <h2>🧪 How to Test</h2>
+        <ol>
+            <li><strong>Start your development server:</strong> <code>npm run dev</code></li>
+            <li><strong>Navigate to signup:</strong> <code>http://localhost:3000/signup</code></li>
+            <li><strong>Fill out the form</strong> with test data</li>
+            <li><strong>Submit the form</strong> and watch the beautiful loading process</li>
+            <li><strong>See the success modal</strong> with encryption confirmation</li>
+            <li><strong>Click "Continue to Login"</strong> to complete the flow</li>
+        </ol>
+
+        <div style="background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin: 15px 0;">
+            <strong>💡 Pro Tip:</strong> The system automatically enables E2E encryption for all new users, 
+            so every new account gets maximum security protection from day one!
+        </div>
+    </div>
+
+    <div class="demo-section">
+        <h2>🎯 Next Steps</h2>
+        <p>The custom modal system is now ready! Users will experience:</p>
+        <ul class="feature-list">
+            <li>Professional, modern signup experience</li>
+            <li>Clear understanding of security features</li>
+            <li>Confidence in the platform's security</li>
+            <li>Smooth, guided onboarding process</li>
+        </ul>
+        
+        <p style="text-align: center; margin-top: 30px;">
+            <strong>🔒 Security + 🎨 Beautiful Design = 😊 Happy Users</strong>
+        </p>
+    </div>
+</body>
+</html>

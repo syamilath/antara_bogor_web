@@ -173,11 +173,28 @@ function SearchContent() {
                   />
                 </div>
                 <h2 className="text-xl font-bold text-gray-900 mb-2">{article.title}</h2>
-                <p className="text-gray-600 line-clamp-2 mb-2">{article.content?.slice(0, 120)}...</p>
-                <div className="flex items-center gap-2 text-xs text-gray-500">
-                  <span>{article.category_name}</span>
+                <div 
+                  className="text-gray-600 line-clamp-2 mb-2 prose prose-sm max-w-none"
+                  dangerouslySetInnerHTML={{ 
+                    __html: article.content 
+                      ? article.content
+                          .replace(/<[^>]*>/g, ' ')
+                          .replace(/\s+/g, ' ')
+                          .trim()
+                          .slice(0, 200) + '...'
+                      : 'No content available' 
+                  }} 
+                />
+                <div className="flex items-center gap-2 text-xs text-gray-500 mt-2">
+                  <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                    {article.category_name || 'Uncategorized'}
+                  </span>
                   <span>•</span>
-                  <span>{new Date(article.created_at).toLocaleDateString()}</span>
+                  <span>{new Date(article.created_at).toLocaleDateString('en-US', {
+                    year: 'numeric',
+                    month: 'short',
+                    day: 'numeric'
+                  })}</span>
                 </div>
               </Link>
             </div>

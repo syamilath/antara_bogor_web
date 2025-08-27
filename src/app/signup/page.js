@@ -4,6 +4,8 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Head from 'next/head';
+import SuccessModal from '../../components/SuccessModal.jsx';
+import LoadingModal from '../../components/LoadingModal.jsx';
 
 export default function SignupPage() {
   const [username, setUsername] = useState('');
@@ -14,11 +16,15 @@ export default function SignupPage() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const [profilePhoto, setProfilePhoto] = useState(null);
+  const [showSuccessModal, setShowSuccessModal] = useState(false);
+  const [successData, setSuccessData] = useState(null);
+  const [showLoadingModal, setShowLoadingModal] = useState(false);
 
   const handleSignup = async (e) => {
     e.preventDefault();
     setError('');
     setLoading(true);
+    setShowLoadingModal(true);
 
     if (!username || !email || !password || !confirmPassword) {
       setError('Please fill in all fields.');
@@ -46,8 +52,15 @@ export default function SignupPage() {
       });
       const data = await response.json();
       if (response.ok) {
-        alert('Signup successful! Please log in.');
-        router.push('/login');
+        // Store success data and show custom modal
+        setSuccessData({
+          encryptionEnabled: data.encryptionEnabled,
+          username: username,
+          message: data.encryptionEnabled 
+            ? 'Your account has been created with end-to-end encryption automatically enabled for maximum security!'
+            : 'Your account has been created successfully! You can enable encryption later in your settings.'
+        });
+        setShowSuccessModal(true);
       } else {
         setError(data.error || 'Signup failed. Please try again.');
       }
@@ -56,11 +69,13 @@ export default function SignupPage() {
       setError('An error occurred during signup. Please try again.');
     } finally {
       setLoading(false);
+      setShowLoadingModal(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#f8f9fa] p-4 font-[Poppins]">
+    <div className="min-h-screen bg-[#f8f9fa] font-[Poppins] py-8">
+      <div className="container mx-auto px-4 flex justify-center">
       <Head>
         <title>Sign Up - News Portal</title>
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
@@ -149,6 +164,28 @@ export default function SignupPage() {
             />
           </div>
 
+          {/* E2E Encryption Information */}
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-start">
+              <svg className="w-5 h-5 text-blue-600 mr-3 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
+              </svg>
+              <div>
+                <h3 className="text-sm font-medium text-blue-800 mb-1">🔐 Automatic Security Protection</h3>
+                <p className="text-sm text-blue-700">
+                  Your account will be automatically protected with <strong>end-to-end encryption</strong> using your password. 
+                  This ensures your personal data, article drafts, and messages are secure and private.
+                </p>
+                <ul className="text-xs text-blue-600 mt-2 space-y-1">
+                  <li>• AES-256 encryption for maximum security</li>
+                  <li>• Your password is used as the encryption key</li>
+                  <li>• Data is encrypted before being stored</li>
+                  <li>• Only you can decrypt your information</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
           {error && (
             <div className="bg-red-100 text-red-700 p-2 rounded-lg text-center text-sm">
               {error}
@@ -180,6 +217,33 @@ export default function SignupPage() {
             Log in
           </Link>
         </p>
+      </div>
+
+      {/* Loading Modal */}
+      <LoadingModal
+        isOpen={showLoadingModal}
+        title="Creating Your Secure Account"
+        steps={[
+          "Creating user account...",
+          "Generating encryption keys...",
+          "Setting up end-to-end encryption...",
+          "Configuring security features...",
+          "Finalizing account setup..."
+        ]}
+      />
+
+      {/* Success Modal */}
+      <SuccessModal
+        isOpen={showSuccessModal}
+        onClose={() => setShowSuccessModal(false)}
+        title={successData?.encryptionEnabled ? "🎉 Account Created with Security!" : "🎉 Account Created Successfully!"}
+        message={successData?.message || "Your account has been created successfully!"}
+        encryptionEnabled={successData?.encryptionEnabled || false}
+        onContinue={() => {
+          setShowSuccessModal(false);
+          router.push('/login');
+        }}
+      />
       </div>
     </div>
   );

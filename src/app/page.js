@@ -1,445 +1,454 @@
+
 'use client';
 
 import {
-  useState, useEffect,
+    useState, useEffect,
 
-  useRef, useMemo
+    useRef, useMemo
 } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import CustomLoader from './components/CustomLoader';
 import TimeCard from './components/TimeCard';
+import AccountMenu from '../components/AccountMenu';
 
 
 // Utility to format dates
 const getFormattedDate = (dateString, options = { month: 'short', day: 'numeric' }) => {
-  if (!dateString) return 'Unknown Date';
-  const date = new Date(dateString);
-  return !isNaN(date.getTime()) ? date.toLocaleDateString('en-US', options) : 'Invalid Date';
+    if (!dateString) return 'Unknown Date';
+    const date = new Date(dateString);
+    return !isNaN(date.getTime()) ? date.toLocaleDateString('en-US', options) : 'Invalid Date';
 };
 
 // Article Card Component
 function ArticleCard({ article }) {
-  const formattedDate = getFormattedDate(article.created_at);
+    const formattedDate = getFormattedDate(article.created_at);
 
-  return (
-    <div className="relative rounded-lg overflow-hidden shadow-md">
-      <Link href={`/article/${article.slug}`} aria-label={`Read ${article.title}`}>
-        <Image
-          src={article.image_url || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c'}
-          alt={article.title}
-          width={400}
-          height={250}
-          sizes="(max-width: 768px) 100vw, 400px"
-          className="w-full h-48 object-cover transition-transform duration-300 hover:scale-105"
-          loading="lazy"
-        />
+    return (
+        <div className="relative rounded-lg overflow-hidden shadow-md">
+            <Link href={`/article/${article.slug}`} aria-label={`Read ${article.title}`}>
+                <Image
+                    src={article.image_url || 'https://images.unsplash.com/photo-1504711434969-e33886168f5c'}
+                    alt={article.title}
+                    width={400}
+                    height={250}
+                    sizes="(max-width: 768px) 100vw, 400px"
+                    className="w-full h-48 object-cover transition-transform duration-300 hover:scale-105"
+                    loading="lazy"
+                />
 
-        {/* Overlay Text */}
-        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-          <span className="inline-block bg-[#013f6e] text-white text-xs px-2 py-0.5 rounded">{article.category?.name || 'General'}</span>
-          <h3 className="text-white text-lg font-semibold mt-2 leading-tight">
-            {article.title}
-          </h3>
-          <p className="text-gray-300 text-sm">{formattedDate}</p>
+                {/* Overlay Text */}
+                <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
+                    <span className="inline-block bg-[#013f6e] text-white text-xs px-2 py-0.5 rounded">{article.category?.name || 'General'}</span>
+                    <h3 className="text-white text-lg font-semibold mt-2 leading-tight">
+                        {article.title}
+                    </h3>
+                    <p className="text-gray-300 text-sm">{formattedDate}</p>
+                </div>
+            </Link>
         </div>
-      </Link>
-    </div>
-  );
+    );
 }
 
 export const fallbackCategories = [
-  { id: 1, name: 'Politics', slug: 'politics', article_count: 24 },
-  { id: 2, name: 'Technology', slug: 'technology', article_count: 18 },
-  { id: 3, name: 'Business', slug: 'business', article_count: 15 },
-  { id: 4, name: 'Sports', slug: 'sports', article_count: 22 },
-  { id: 5, name: 'Entertainment', slug: 'entertainment', article_count: 17 },
-  { id: 6, name: 'History', slug: 'history', article_count: 20 },
+    { id: 1, name: 'Politics', slug: 'politics', article_count: 24 },
+    { id: 2, name: 'Technology', slug: 'technology', article_count: 18 },
+    { id: 3, name: 'Business', slug: 'business', article_count: 15 },
+    { id: 4, name: 'Sports', slug: 'sports', article_count: 22 },
+    { id: 5, name: 'Entertainment', slug: 'entertainment', article_count: 17 },
+    { id: 6, name: 'History', slug: 'history', article_count: 20 },
 ];
 
 const popularArticles = [
-  {
-    id: 1,
-    title: 'Historic Peace Agreement Signed',
-    slug: 'historic-peace-agreement-2023',
-    views: '24.5k',
-    date: 'May 12',
-    rank: 1,
-  },
-  {
-    id: 2,
-    title: 'Tech Billionaire Unveils Space Plans',
-    slug: 'tech-billionaire-space-2023',
-    views: '18.7k',
-    date: 'May 11',
-    rank: 2,
-  },
-  {
-    id: 3,
-    title: 'Stock Market Hits Record High',
-    slug: 'stock-market-high-2023',
-    views: '15.2k',
-    date: 'May 10',
-    rank: 3,
-  },
-  {
-    id: 4,
-    title: 'New Species in Amazon Rainforest',
-    slug: 'new-species-amazon-2023',
-    views: '12.9k',
-    date: 'May 9',
-    rank: 4,
-  },
-  {
-    id: 5,
-    title: 'Film Director’s New Project',
-    slug: 'film-director-project-2023',
-    views: '10.3k',
-    date: 'May 8',
-    rank: 5,
-  },
+    {
+        id: 1,
+        title: 'Historic Peace Agreement Signed',
+        slug: 'historic-peace-agreement-2023',
+        views: '24.5k',
+        date: 'May 12',
+        rank: 1,
+    },
+    {
+        id: 2,
+        title: 'Tech Billionaire Unveils Space Plans',
+        slug: 'tech-billionaire-space-2023',
+        views: '18.7k',
+        date: 'May 11',
+        rank: 2,
+    },
+    {
+        id: 3,
+        title: 'Stock Market Hits Record High',
+        slug: 'stock-market-high-2023',
+        views: '15.2k',
+        date: 'May 10',
+        rank: 3,
+    },
+    {
+        id: 4,
+        title: 'New Species in Amazon Rainforest',
+        slug: 'new-species-amazon-2023',
+        views: '12.9k',
+        date: 'May 9',
+        rank: 4,
+    },
+    {
+        id: 5,
+        title: 'Film Director’s New Project',
+        slug: 'film-director-project-2023',
+        views: '10.3k',
+        date: 'May 8',
+        rank: 5,
+    },
 ];
 
 // Main RetroNews Component
 export default function RetroNews() {
-  // State
-  const [articles, setArticles] = useState([]);
-  const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [isScrolled, setIsScrolled] = useState(false);
-  const navMenuRef = useRef(null);
-  const router = useRouter();
+    // State
+    const [articles, setArticles] = useState([]);
+    const [categories, setCategories] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
+    const [selectedCategory, setSelectedCategory] = useState('all');
+    const [isScrolled, setIsScrolled] = useState(false);
+    const navMenuRef = useRef(null);
+    const router = useRouter();
 
 
-  // Fetch Articles and Categories
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setError(null);
-      try {
-        const articlesUrl = selectedCategory === 'all' ? '/api/articles' : `/api/articles?category=${selectedCategory}`;
-        const [articlesRes, categoriesRes] = await Promise.all([
-          fetch(articlesUrl, { cache: 'no-store' }),
-          fetch('/api/categories', { cache: 'no-store' }),
-        ]);
+    // Fetch Articles and Categories
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            setError(null);
+            try {
+                const articlesUrl = selectedCategory === 'all' ? '/api/articles' : `/api/articles?category=${selectedCategory}`;
+                const [articlesRes, categoriesRes] = await Promise.all([
+                    fetch(articlesUrl, { cache: 'no-store' }),
+                    fetch('/api/categories', { cache: 'no-store' }),
+                ]);
 
-        if (!articlesRes.ok) throw new Error(`Failed to fetch articles: ${articlesRes.statusText}`);
-        if (!categoriesRes.ok) throw new Error(`Failed to fetch categories: ${categoriesRes.statusText}`);
+                if (!articlesRes.ok) throw new Error(`Failed to fetch articles: ${articlesRes.statusText}`);
+                if (!categoriesRes.ok) throw new Error(`Failed to fetch categories: ${categoriesRes.statusText}`);
 
-        const articlesData = await articlesRes.json();
-        const categoriesData = await categoriesRes.json();
+                const articlesData = await articlesRes.json();
+                const categoriesData = await categoriesRes.json();
 
-        const safeArticlesData = Array.isArray(articlesData) ? articlesData : [];
-        const safeCategoriesData = Array.isArray(categoriesData) ? categoriesData : [];
+                const safeArticlesData = Array.isArray(articlesData) ? articlesData : [];
+                const safeCategoriesData = Array.isArray(categoriesData) ? categoriesData : [];
 
-        const articlesMapped = safeArticlesData.map((article) => ({
-          ...article,
-          category: article.category_slug && article.category_name
-            ? { name: article.category_name, slug: article.category_slug }
-            : safeCategoriesData.find((cat) => String(cat.id) === String(article.category_id)) || {
-              name: 'Uncategorized',
-              slug: 'uncategorized',
+                const articlesMapped = safeArticlesData.map((article) => ({
+                    ...article,
+                    category: article.category_slug && article.category_name
+                        ? { name: article.category_name, slug: article.category_slug }
+                        : safeCategoriesData.find((cat) => String(cat.id) === String(article.category_id)) || {
+                            name: 'Uncategorized',
+                            slug: 'uncategorized',
+                        },
+                }));
+
+                setArticles(articlesMapped);
+                setCategories(safeCategoriesData);
+
+
+
+
+            } catch (error) {
+                setError(`Failed to load data. Please try again later.`);
+                setArticles([]);
+                setCategories([]);
+            } finally {
+                // Delay 3 detik sebelum matikan loading
+                setTimeout(() => {
+                    setLoading(false);
+                }, 3000); // 3000 ms = 3 detik
+            }
+
+
+        };
+
+        fetchData();
+    }, [selectedCategory]);
+
+    // Intersection Observer for Animations
+    useEffect(() => {
+        const observer = new IntersectionObserver(
+            (entries) => {
+                entries.forEach((entry) => {
+                    if (entry.isIntersecting) {
+                        entry.target.style.opacity = '1';
+                        entry.target.style.transform = 'translateY(0)';
+                    }
+                });
             },
-        }));
+            { threshold: 0.1 }
+        );
 
-        setArticles(articlesMapped);
-        setCategories(safeCategoriesData);
-
-
-
-
-      } catch (error) {
-        setError(`Failed to load data. Please try again later.`);
-        setArticles([]);
-        setCategories([]);
-      } finally {
-        // Delay 3 detik sebelum matikan loading
-        setTimeout(() => {
-          setLoading(false);
-        }, 3000); // 3000 ms = 3 detik
-      }
-
-
-    };
-
-    fetchData();
-  }, [selectedCategory]);
-
-  // Intersection Observer for Animations
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            entry.target.style.opacity = '1';
-            entry.target.style.transform = 'translateY(0)';
-          }
+        document.querySelectorAll('.neumorphic-card, .popular-item, .neumorphic').forEach((el, index) => {
+            el.style.opacity = '0';
+            el.style.transform = 'translateY(20px)';
+            el.style.transition = `all 0.5s ease ${index * 0.1}s`;
+            observer.observe(el);
         });
-      },
-      { threshold: 0.1 }
-    );
-
-    document.querySelectorAll('.neumorphic-card, .popular-item, .neumorphic').forEach((el, index) => {
-      el.style.opacity = '0';
-      el.style.transform = 'translateY(20px)';
-      el.style.transition = `all 0.5s ease ${index * 0.1}s`;
-      observer.observe(el);
-    });
 
 
-    return () => observer.disconnect();
-  }, []);
+        return () => observer.disconnect();
+    }, []);
 
-  // Draggable Navigation with Keyboard Support
-  useEffect(() => {
-    const navMenu = navMenuRef.current;
-    if (!navMenu) return;
+    // Draggable Navigation with Keyboard Support
+    useEffect(() => {
+        const navMenu = navMenuRef.current;
+        if (!navMenu) return;
 
-    let isDown = false;
-    let startX;
-    let scrollLeft;
+        let isDown = false;
+        let startX;
+        let scrollLeft;
 
-    const handleMouseDown = (e) => {
-      isDown = true;
-      startX = e.pageX - navMenu.offsetLeft;
-      scrollLeft = navMenu.scrollLeft;
-      navMenu.style.cursor = 'grabbing';
+        const handleMouseDown = (e) => {
+            isDown = true;
+            startX = e.pageX - navMenu.offsetLeft;
+            scrollLeft = navMenu.scrollLeft;
+            navMenu.style.cursor = 'grabbing';
+        };
+
+        const handleMouseLeave = () => {
+            isDown = false;
+            navMenu.style.cursor = 'grab';
+        };
+
+        const handleMouseUp = () => {
+            isDown = false;
+            navMenu.style.cursor = 'grab';
+        };
+
+        const handleMouseMove = (e) => {
+            if (!isDown) return;
+            e.preventDefault();
+            const x = e.pageX - navMenu.offsetLeft;
+            const walk = (x - startX) * 2;
+            navMenu.scrollLeft = scrollLeft - walk;
+        };
+
+        const handleTouchStart = (e) => {
+            isDown = true;
+            startX = e.touches[0].pageX - navMenu.offsetLeft;
+            scrollLeft = navMenu.scrollLeft;
+        };
+
+        const handleTouchEnd = () => {
+            isDown = false;
+        };
+
+        const handleTouchMove = (e) => {
+            if (!isDown) return;
+            const x = e.touches[0].pageX - navMenu.offsetLeft;
+            const walk = (x - startX) * 2;
+            navMenu.scrollLeft = scrollLeft - walk;
+        };
+
+        const handleKeyDown = (e) => {
+            if (e.key === 'ArrowRight') navMenu.scrollLeft += 100;
+            if (e.key === 'ArrowLeft') navMenu.scrollLeft -= 100;
+        };
+
+        navMenu.addEventListener('mousedown', handleMouseDown);
+        navMenu.addEventListener('mouseleave', handleMouseLeave);
+        navMenu.addEventListener('mouseup', handleMouseUp);
+        navMenu.addEventListener('mousemove', handleMouseMove);
+        navMenu.addEventListener('touchstart', handleTouchStart);
+        navMenu.addEventListener('touchend', handleTouchEnd);
+        navMenu.addEventListener('touchmove', handleTouchMove);
+        navMenu.addEventListener('keydown', handleKeyDown);
+
+        return () => {
+            navMenu.removeEventListener('mousedown', handleMouseDown);
+            navMenu.removeEventListener('mouseleave', handleMouseLeave);
+            navMenu.removeEventListener('mouseup', handleMouseUp);
+            navMenu.removeEventListener('mousemove', handleMouseMove);
+            navMenu.removeEventListener('touchstart', handleTouchStart);
+            navMenu.removeEventListener('touchend', handleTouchEnd);
+            navMenu.removeEventListener('touchmove', handleTouchMove);
+            navMenu.removeEventListener('keydown', handleKeyDown);
+        };
+    }, []);
+
+    // Navbar Scroll Behavior
+    useEffect(() => {
+        const handleScroll = () => {
+            setIsScrolled(window.scrollY > 50);
+        };
+
+        window.addEventListener('scroll', handleScroll);
+        handleScroll();
+
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
+    // Handlers
+    const handleCategoryClick = (categorySlug) => {
+        setSelectedCategory(categorySlug);
     };
 
-    const handleMouseLeave = () => {
-      isDown = false;
-      navMenu.style.cursor = 'grab';
+    const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        const query = e.target.search.value.trim();
+        if (query) {
+            router.push(`/search?q=${encodeURIComponent(query)}`);
+        }
     };
 
-    const handleMouseUp = () => {
-      isDown = false;
-      navMenu.style.cursor = 'grab';
-    };
+    // breaking news barnya 
 
-    const handleMouseMove = (e) => {
-      if (!isDown) return;
-      e.preventDefault();
-      const x = e.pageX - navMenu.offsetLeft;
-      const walk = (x - startX) * 2;
-      navMenu.scrollLeft = scrollLeft - walk;
-    };
 
-    const handleTouchStart = (e) => {
-      isDown = true;
-      startX = e.touches[0].pageX - navMenu.offsetLeft;
-      scrollLeft = navMenu.scrollLeft;
-    };
+    // Memoized Filtered Articles
+    const filteredArticles = useMemo(() => {
+        return selectedCategory === 'all'
+            ? articles
+            : articles.filter((article) => article?.category?.slug === selectedCategory);
+    }, [articles, selectedCategory]);
 
-    const handleTouchEnd = () => {
-      isDown = false;
-    };
+    // Structured Data for SEO
+    const structuredData = filteredArticles[0]
+        ? {
+            '@context': 'https://schema.org',
+            '@type': 'NewsArticle',
+            headline: filteredArticles[0].title,
+            image: filteredArticles[0].image_url || 'https://images.unsplash.com/photo-1495020689067-958852a7765e',
+            datePublished: filteredArticles[0].created_at,
+            author: { '@type': 'Person', name: filteredArticles[0].author?.name || 'Staff Writer' },
+        }
+        : null;
 
-    const handleTouchMove = (e) => {
-      if (!isDown) return;
-      const x = e.touches[0].pageX - navMenu.offsetLeft;
-      const walk = (x - startX) * 2;
-      navMenu.scrollLeft = scrollLeft - walk;
-    };
+    // Render
 
-    const handleKeyDown = (e) => {
-      if (e.key === 'ArrowRight') navMenu.scrollLeft += 100;
-      if (e.key === 'ArrowLeft') navMenu.scrollLeft -= 100;
-    };
 
-    navMenu.addEventListener('mousedown', handleMouseDown);
-    navMenu.addEventListener('mouseleave', handleMouseLeave);
-    navMenu.addEventListener('mouseup', handleMouseUp);
-    navMenu.addEventListener('mousemove', handleMouseMove);
-    navMenu.addEventListener('touchstart', handleTouchStart);
-    navMenu.addEventListener('touchend', handleTouchEnd);
-    navMenu.addEventListener('touchmove', handleTouchMove);
-    navMenu.addEventListener('keydown', handleKeyDown);
 
-    return () => {
-      navMenu.removeEventListener('mousedown', handleMouseDown);
-      navMenu.removeEventListener('mouseleave', handleMouseLeave);
-      navMenu.removeEventListener('mouseup', handleMouseUp);
-      navMenu.removeEventListener('mousemove', handleMouseMove);
-      navMenu.removeEventListener('touchstart', handleTouchStart);
-      navMenu.removeEventListener('touchend', handleTouchEnd);
-      navMenu.removeEventListener('touchmove', handleTouchMove);
-      navMenu.removeEventListener('keydown', handleKeyDown);
-    };
-  }, []);
+    const today = new Date();
+    const articlesToday = filteredArticles
+        .filter((article) => {
+            const articleDate = new Date(article.created_at);
+            return (
+                articleDate.getDate() === today.getDate() &&
+                articleDate.getMonth() === today.getMonth() &&
+                articleDate.getFullYear() === today.getFullYear()
+            );
+        })
+        .sort((a, b) => (b.views || 0) - (a.views || 0)); // kalau mau urutkan by views
 
-  // Navbar Scroll Behavior
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY > 50);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    handleScroll();
-
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
-
-  // Handlers
-  const handleCategoryClick = (categorySlug) => {
-    setSelectedCategory(categorySlug);
-  };
-
-  const handleSearchSubmit = (e) => {
-    e.preventDefault();
-    const query = e.target.search.value.trim();
-    if (query) {
-      router.push(`/search?q=${encodeURIComponent(query)}`);
+    if (loading) {
+        return <CustomLoader />;
     }
-  };
-
-  // breaking news barnya 
-
-
-  // Memoized Filtered Articles
-  const filteredArticles = useMemo(() => {
-    return selectedCategory === 'all'
-      ? articles
-      : articles.filter((article) => article?.category?.slug === selectedCategory);
-  }, [articles, selectedCategory]);
-
-  // Structured Data for SEO
-  const structuredData = filteredArticles[0]
-    ? {
-      '@context': 'https://schema.org',
-      '@type': 'NewsArticle',
-      headline: filteredArticles[0].title,
-      image: filteredArticles[0].image_url || 'https://images.unsplash.com/photo-1495020689067-958852a7765e',
-      datePublished: filteredArticles[0].created_at,
-      author: { '@type': 'Person', name: filteredArticles[0].author?.name || 'Staff Writer' },
-    }
-    : null;
-
-  // Render
 
 
 
-  const today = new Date();
-  const articlesToday = filteredArticles
-    .filter((article) => {
-      const articleDate = new Date(article.created_at);
-      return (
-        articleDate.getDate() === today.getDate() &&
-        articleDate.getMonth() === today.getMonth() &&
-        articleDate.getFullYear() === today.getFullYear()
-      );
-    })
-    .sort((a, b) => (b.views || 0) - (a.views || 0)); // kalau mau urutkan by views
-
-  if (loading) {
-    return <CustomLoader />;
-  }
-
-
-
-  return (
-    <div className="relative">
-      {structuredData && (
-        <script
-          type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
-        />
-      )}
-      {/* Floating Decorative Elements */}
-      <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
-        <div
-          className="absolute top-1/4 left-10 w-20 h-20 rounded-full bg-[var(--secondary)] opacity-10 mix-blend-multiply filter blur-xl animate-float"
-          style={{ animationDelay: '0s' }}
-        ></div>
-        <div
-          className="absolute top-1/3 right-20 w-32 h-32 rounded-full bg-[var(--primary)] opacity-10 mix-blend-multiply filter blur-xl animate-float"
-          style={{ animationDelay: '1s' }}
-        ></div>
-        <div
-          className="absolute bottom-1/4 left-1/4 w-24 h-24 rounded-full bg-[var(--secondary)] opacity-10 mix-blend-multiply filter blur-xl animate-float"
-          style={{ animationDelay: '2s' }}
-        ></div>
-      </div>
-
-      {/* Header */}
-      <header className="py-8 relative z-10">
-        {/* Responsive Header: Logo left, weather right on mobile; stacked on desktop */}
-        <div className="container mx-auto px-4">
-          <div className="flex flex-row items-center justify-between gap-4 mb-8 w-full">
-            {/* Logo on the left */}
-            <div className="flex items-center gap-3">
-              <Image
-                src="/uploads/logo-removebg-preview.png"
-                alt="Logo"
-                width={80}
-                height={80}
-                className="w-20 h-auto"
-                priority
-              />
-              <h1 className="hidden md:block text-xl sm:text-2xl md:text-4xl font-extrabold text-[#013f6e]">
-                ANTARA<span className="text-[#a9a9a9]">BOGOR</span>
-              </h1>
-            </div>
-            {/* Weather/time card on the right */}
-            <div className="flex-shrink-0">
-              <TimeCard />
-            </div>
-          </div>
-          <nav className="neumorphic-nav p-2 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-4" role="navigation">
-            <ul
-              ref={navMenuRef}
-              className="flex space-x-2 sm:space-x-6 overflow-x-auto whitespace-nowrap w-full justify-start px-2 custom-horizontal-scrollbar"
-              tabIndex={0}
-            >
-              <li>
-                <button
-                  role="button"
-                  onClick={() => handleCategoryClick('all')}
-                  className={`nav-link py-1 sm:py-2 px-2 sm:px-1 text-sm sm:text-base ${selectedCategory === 'all' ? 'active-nav' : ''}`}
-                >
-                  All
-                </button>
-              </li>
-              {(categories.length > 0 ? categories : fallbackCategories).map((category) => (
-                <li key={category.id}>
-                  <button
-                    role="button"
-                    onClick={() => handleCategoryClick(category.slug)}
-                    className={`nav-link py-1 sm:py-2 px-2 sm:px-1 text-sm sm:text-base font-bold transition-all duration-300 ease-in-out ${selectedCategory === category.slug ? 'active-nav' : ''}`}
-                  >
-                    {category.name}
-                  </button>
-                </li>
-              ))}
-            </ul>
-            {/* Search Bar */}
-            <div className="flex justify-center my-4 sm:my-6 px-2 w-full sm:w-auto">
-              <form
-                action="/search"
-                method="get"
-                className="flex flex-row items-stretch bg-white rounded-full shadow-md px-2 sm:px-4 py-2 w-full max-w-full sm:max-w-md md:max-w-lg lg:max-w-xl border border-gray-200 focus-within:ring-2 focus-within:ring-blue-400 gap-2"
-                style={{ boxShadow: '0 2px 12px 0 rgba(0,0,0,0.06)' }}
-              >
-                <input
-                  type="text"
-                  name="q"
-                  placeholder="Search news by keyword, title, or tag..."
-                  className="flex-1 bg-transparent outline-none px-2 py-2 text-base sm:text-lg text-gray-700 rounded-full sm:rounded-none"
-                  required
-                  aria-label="Search news"
+    return (
+        <div className="relative">
+            {structuredData && (
+                <script
+                    type="application/ld+json"
+                    dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }}
                 />
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition text-base whitespace-nowrap flex-shrink-0"
-                  aria-label="Search"
-                >
-                  Search
-                </button>
-              </form>
+            )}
+            {/* Floating Decorative Elements */}
+            <div className="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none">
+                <div
+                    className="absolute top-1/4 left-10 w-20 h-20 rounded-full bg-[var(--secondary)] opacity-10 mix-blend-multiply filter blur-xl animate-float"
+                    style={{ animationDelay: '0s' }}
+                ></div>
+                <div
+                    className="absolute top-1/3 right-20 w-32 h-32 rounded-full bg-[var(--primary)] opacity-10 mix-blend-multiply filter blur-xl animate-float"
+                    style={{ animationDelay: '1s' }}
+                ></div>
+                <div
+                    className="absolute bottom-1/4 left-1/4 w-24 h-24 rounded-full bg-[var(--secondary)] opacity-10 mix-blend-multiply filter blur-xl animate-float"
+                    style={{ animationDelay: '2s' }}
+                ></div>
             </div>
-            {/* <div className="flex items-center space-x-2 ml-4">
+
+            {/* Header */}
+            <header className="py-8 relative z-10">
+                {/* Responsive Header: Logo left, weather right on mobile; stacked on desktop */}
+                <div className="container mx-auto px-4">
+                    <div className="flex flex-row items-center justify-between gap-4 mb-8 w-full">
+                        {/* Logo on the left */}
+                        <div className="flex items-center gap-3">
+                            <Image
+                                src="/uploads/logo-removebg-preview.png"
+                                alt="Logo"
+                                width={80}
+                                height={80}
+                                className="w-20 h-auto"
+                                priority
+                            />
+                            <h1 className="hidden md:block text-xl sm:text-2xl md:text-4xl font-extrabold text-[#013f6e]">
+                                ANTARA<span className="text-[#a9a9a9]">BOGOR</span>
+                            </h1>
+                        </div>
+                                                 {/* Right side: Weather/time card and Account menu */}
+                         <div className="flex items-center gap-4">
+                             {/* Weather/time card */}
+                             <div className="flex-shrink-0">
+                                 <TimeCard />
+                             </div>
+                             {/* Account Menu */}
+                             <div className="flex-shrink-0">
+                                 <AccountMenu />
+                             </div>
+                         </div>
+                    </div>
+                    <nav className="neumorphic-nav p-2 sm:p-4 flex flex-col sm:flex-row items-center justify-between gap-4" role="navigation">
+                        <ul
+                            ref={navMenuRef}
+                            className="flex space-x-2 sm:space-x-6 overflow-x-auto whitespace-nowrap w-full justify-start px-2 custom-horizontal-scrollbar"
+                            tabIndex={0}
+                        >
+                            <li>
+                                <button
+                                    role="button"
+                                    onClick={() => handleCategoryClick('all')}
+                                    className={`nav-link py-1 sm:py-2 px-2 sm:px-1 text-sm sm:text-base ${selectedCategory === 'all' ? 'active-nav' : ''}`}
+                                >
+                                    All
+                                </button>
+                            </li>
+                            {(categories.length > 0 ? categories : fallbackCategories).map((category) => (
+                                <li key={category.id}>
+                                    <button
+                                        role="button"
+                                        onClick={() => handleCategoryClick(category.slug)}
+                                        className={`nav-link py-1 sm:py-2 px-2 sm:px-1 text-sm sm:text-base font-bold transition-all duration-300 ease-in-out ${selectedCategory === category.slug ? 'active-nav' : ''}`}
+                                    >
+                                        {category.name}
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                        {/* Search Bar */}
+                        <div className="flex justify-center my-4 sm:my-6 px-2 w-full sm:w-auto">
+                            <form
+                                action="/search"
+                                method="get"
+                                className="flex flex-row items-stretch bg-white rounded-full shadow-md px-2 sm:px-4 py-2 w-full max-w-full sm:max-w-md md:max-w-lg lg:max-w-xl border border-gray-200 focus-within:ring-2 focus-within:ring-blue-400 gap-2"
+                                style={{ boxShadow: '0 2px 12px 0 rgba(0,0,0,0.06)' }}
+                            >
+                                <input
+                                    type="text"
+                                    name="q"
+                                    placeholder="Search news by keyword, title, or tag..."
+                                    className="flex-1 bg-transparent outline-none px-2 py-2 text-base sm:text-lg text-gray-700 rounded-full sm:rounded-none"
+                                    required
+                                    aria-label="Search news"
+                                />
+                                <button
+                                    type="submit"
+                                    className="px-4 py-2 bg-blue-600 text-white rounded-full font-semibold hover:bg-blue-700 transition text-base whitespace-nowrap flex-shrink-0"
+                                    aria-label="Search"
+                                >
+                                    Search
+                                </button>
+                            </form>
+                        </div>
+                        {/* <div className="flex items-center space-x-2 ml-4">
               <Link href="/admin">
                 <button
                   className={`neumorphic-btn neumorphic-btn-secondary text-sm transition-all duration-300 ease-in-out ${
@@ -452,12 +461,12 @@ export default function RetroNews() {
                 </button>
               </Link>
             </div> */}
-          </nav>
-        </div>
-      </header>
+                    </nav>
+                </div>
+            </header>
 
-      {/* Neumorphic Breaking News Bar - Layout Fix with Margin and Height */}
-      <style>{`
+            {/* Neumorphic Breaking News Bar - Layout Fix with Margin and Height */}
+            <style>{`
         @keyframes neumorph-marquee {
           0% { transform: translateX(0%); }
           100% { transform: translateX(-50%); }
@@ -470,306 +479,305 @@ export default function RetroNews() {
           height: 3.2rem; /* Increased height for better fit */
         }
       `}</style>
-      <div className="w-full bg-[#e8f0fa] shadow-[0_4px_24px_0_rgba(0,0,0,0.08)] rounded-2xl py-2 px-2 sm:px-4 flex flex-row items-center overflow-x-auto whitespace-nowrap mb-8 border border-[#e0e7ef] mt-6 mx-auto max-w-[95vw]" style={{marginTop: '1.5rem', marginBottom: '2rem'}}>
-        <span className="flex items-center bg-white text-[#d7263d] font-bold px-2 sm:px-4 py-1 rounded-full text-xs sm:text-base lg:text-lg mr-2 flex-shrink-0 h-8 sm:h-12 shadow-lg" style={{height: '2rem', minHeight: '2em'}}>
-          <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2 text-[#d7263d]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-          <span className="hidden sm:inline">BREAKING NEWS</span>
-          <span className="sm:hidden">BREAKING</span>
-        </span>
-        <div className="flex-1 min-w-0 overflow-hidden">
-          <div className="neumorph-animate-marquee group-hover:[animation-play-state:paused] items-center pl-2 sm:pl-8 pr-2 sm:pr-8 rounded-full bg-[#e8f0fa] py-1 shadow-[0_2px_8px_0_rgba(0,0,0,0.03)]" style={{height: '2rem', minHeight: '2rem'}}>
-            {articlesToday && articlesToday.length > 0 ? (
-              [...articlesToday, ...articlesToday].map((article, index) => (
-                <span key={index} className="text-[#013f6e] font-semibold text-xs sm:text-base lg:text-lg hover:text-[#d7263d] transition h-[1.5rem] sm:h-[2.2rem] w-full flex items-center justify-center text-center mr-4 sm:mr-8 lg:mr-12 p-1" style={{height: '1.5rem', minWidth: '6rem'}}>
-                  <Link href={`/article/${article.slug}`}>{article.title}</Link>
+            <div className="w-full bg-[#e8f0fa] shadow-[0_4px_24px_0_rgba(0,0,0,0.08)] rounded-2xl py-2 px-2 sm:px-4 flex flex-row items-center overflow-x-auto whitespace-nowrap mb-8 border border-[#e0e7ef] mt-6 mx-auto max-w-[95vw]" style={{ marginTop: '1.5rem', marginBottom: '2rem' }}>
+                <span className="flex items-center bg-white text-[#d7263d] font-bold px-2 sm:px-4 py-1 rounded-full text-xs sm:text-base lg:text-lg mr-2 flex-shrink-0 h-8 sm:h-12 shadow-lg" style={{ height: '2rem', minHeight: '2em' }}>
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5 mr-1 sm:mr-2 text-[#d7263d]" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <span className="hidden sm:inline">BREAKING NEWS</span>
+                    <span className="sm:hidden">BREAKING</span>
                 </span>
-              ))
-            ) : (
-              [
-                "There is no latest news today.",
-                "Please check back later.",
-                "Thank you for visiting us!"
-              ].map((msg, index) => (
-                <span key={index} className="text-[#013f6e] font-semibold text-xs sm:text-base lg:text-lg h-[1.5rem] sm:h-[2.2rem] w-full flex items-center justify-center text-center mr-4 sm:mr-8 lg:mr-12 p-1" style={{height: '1.5rem', minWidth: '6rem'}}>
-                  {msg}
-                </span>
-              ))
-            )}
-          </div>
-        </div>
-      </div>
-
-
-      {/* Main Content */}
-      <main className="container mx-auto px-4 py-8 relative z-10">
-        <div className="flex flex-col lg:flex-row gap-8">
-          {/* News Feed */}
-          <div className="lg:w-2/3">
-            {loading ? (
-              <p>Loading articles...</p>
-            ) : error ? (
-              <div className="text-red-500">
-                <p>{error}</p>
-                <button
-                  onClick={() => setSelectedCategory(selectedCategory)}
-                  className="neumorphic-btn neumorphic-btn-primary mt-4"
-                >
-                  Retry
-                </button>
-              </div>
-            ) : filteredArticles.length > 0 ? (
-              <>
-                {/* Featured Story */}
-                {filteredArticles[0] && (
-                  <div className="neumorphic-card relative overflow-hidden rounded-2xl mb-12" style={{ height: '450px' }}>
-                    <Link href={`/article/${filteredArticles[0].slug}`} aria-label={`Read ${filteredArticles[0].title}`}>
-                      <Image
-                        src={filteredArticles[0].image_url || 'https://images.unsplash.com/photo-1495020689067-958852a7765e'}
-                        alt={filteredArticles[0].title}
-                        width={1200}
-                        height={450}
-                        sizes="(max-width: 768px) 100vw, 1200px"
-                        className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-                        priority
-                      />
-                      {/* Overlay Teks */}
-                      <div className="absolute bottom-0 left-0 right-0 p-4 bg-black/60 rounded-b-2xl">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="bg-[#013f6e] text-white text-xs font-medium px-3 py-0.5 rounded-full">{filteredArticles[0].category?.name || 'Unknown'}</span>
-                          <span className="bg-white/80 text-gray-700 text-xs font-medium px-3 py-0.5 rounded-full">{getFormattedDate(filteredArticles[0].created_at, { month: 'short', day: 'numeric' })}</span>
-                        </div>
-                        <h2 className="text-2xl font-bold text-white mb-1">{filteredArticles[0].title}</h2>
-                        <p className="text-xs text-gray-200">By {filteredArticles[0].author?.name || 'Unknown'}</p>
-                      </div>
-                    </Link>
-                  </div>
-                )}
-
-
-                {/* Article Grid */}
-                <div className="grid md:grid-cols-2 gap-8">
-                  {filteredArticles.slice(filteredArticles[0] ? 1 : 0).map((article) => (
-                    <ArticleCard key={article.id} article={article} />
-                  ))}
+                <div className="flex-1 min-w-0 overflow-hidden">
+                    <div className="neumorph-animate-marquee group-hover:[animation-play-state:paused] items-center pl-2 sm:pl-8 pr-2 sm:pr-8 rounded-full bg-[#e8f0fa] py-1 shadow-[0_2px_8px_0_rgba(0,0,0,0.03)]" style={{ height: '2rem', minHeight: '2rem' }}>
+                        {articlesToday && articlesToday.length > 0 ? (
+                            [...articlesToday, ...articlesToday].map((article, index) => (
+                                <span key={index} className="text-[#013f6e] font-semibold text-xs sm:text-base lg:text-lg hover:text-[#d7263d] transition h-[1.5rem] sm:h-[2.2rem] w-full flex items-center justify-center text-center mr-4 sm:mr-8 lg:mr-12 p-1" style={{ height: '1.5rem', minWidth: '6rem' }}>
+                                    <Link href={`/article/${article.slug}`}>{article.title}</Link>
+                                </span>
+                            ))
+                        ) : (
+                            [
+                                "There is no latest news today.",
+                                "Please check back later.",
+                                "Thank you for visiting us!"
+                            ].map((msg, index) => (
+                                <span key={index} className="text-[#013f6e] font-semibold text-xs sm:text-base lg:text-lg h-[1.5rem] sm:h-[2.2rem] w-full flex items-center justify-center text-center mr-4 sm:mr-8 lg:mr-12 p-1" style={{ height: '1.5rem', minWidth: '6rem' }}>
+                                    {msg}
+                                </span>
+                            ))
+                        )}
+                    </div>
                 </div>
-              </>
-            ) : (
-              <p>
-                No articles found
-                {selectedCategory !== 'all'
-                  ? ` in the "${categories.find((c) => c.slug === selectedCategory)?.name || selectedCategory}" category`
-                  : ''}.
-              </p>
-            )}
-          </div>
+            </div>
 
 
-
-          {/* Sidebar */}
-          <div className="lg:w-1/3">
-            {/* Remove max-height and overflow from here */}
-            <div className="sticky-sidebar lg:sticky lg:top-32 space-y-8 lg:pr-2">
-              {/* Popular News → GANTI jadi Today's News */}
-              <div className="neumorphic p-6 rounded-2xl">
-                <h2 className="text-2xl font-bold mb-6 flex items-center">
-                  <div className="neumorphic w-10 h-10 rounded-full flex items-center justify-center mr-3">
-                    <i className="fas fa-sun text-[#013f6e]"></i>
-                  </div>
-                  Today’s News
-                </h2>
-                {/* Add overflow and max-height to the list container */}
-                <div className="space-y-5 overflow-y h-fit scrollbar-thin scrollbar-thumb-primary scrollbar-track-gray-100 pr-2">
-                  {articlesToday.length > 0 ? (
-                    articlesToday.map((item, index) => (
-                      <Link
-                        key={item.id}
-                        href={`/article/${item.slug}`}
-                        className="popular-item block pb-4"
-                        aria-label={`Read ${item.title}`}
-                      >
-                        <div className="flex items-start">
-                          <div className="neumorphic w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
-                            <span className="popular-rank">{index + 1}</span>
-                          </div>
-                          <div>
-                            <h3 className="font-bold mb-1 hover:text-[var(--primary)] transition-colors">
-                              {item.title}
-                            </h3>
-                            <div className="flex items-center text-sm text-gray-500">
-
-                              <span>
-                                <i className="far fa-clock mr-1"></i>{" "}
-                                {getFormattedDate(item.created_at, {
-                                  month: "long",
-                                  day: "numeric",
-                                })}
-                              </span>
+            {/* Main Content */}
+            <main className="container mx-auto px-4 py-8 relative z-10">
+                <div className="flex flex-col lg:flex-row gap-8">
+                    {/* News Feed */}
+                    <div className="lg:w-2/3">
+                        {loading ? (
+                            <p>Loading articles...</p>
+                        ) : error ? (
+                            <div className="text-red-500">
+                                <p>{error}</p>
+                                <button
+                                    onClick={() => setSelectedCategory(selectedCategory)}
+                                    className="neumorphic-btn neumorphic-btn-primary mt-4"
+                                >
+                                    Retry
+                                </button>
                             </div>
-                          </div>
+                        ) : filteredArticles.length > 0 ? (
+                            <>
+                                {/* Featured Story */}
+                                {filteredArticles[0] && (
+                                    <div className="neumorphic-card relative overflow-hidden rounded-2xl mb-12" style={{ height: '450px' }}>
+                                        <Link href={`/article/${filteredArticles[0].slug}`} aria-label={`Read ${filteredArticles[0].title}`}>
+                                            <Image
+                                                src={filteredArticles[0].image_url || 'https://images.unsplash.com/photo-1495020689067-958852a7765e'}
+                                                alt={filteredArticles[0].title}
+                                                width={1200}
+                                                height={450}
+                                                sizes="(max-width: 768px) 100vw, 1200px"
+                                                className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
+                                                priority
+                                            />
+                                            {/* Overlay Teks */}
+                                            <div className="absolute bottom-0 left-0 right-0 p-4 bg-black/60 rounded-b-2xl">
+                                                <div className="flex items-center gap-2 mb-2">
+                                                    <span className="bg-[#013f6e] text-white text-xs font-medium px-3 py-0.5 rounded-full">{filteredArticles[0].category?.name || 'Unknown'}</span>
+                                                    <span className="bg-white/80 text-gray-700 text-xs font-medium px-3 py-0.5 rounded-full">{getFormattedDate(filteredArticles[0].created_at, { month: 'short', day: 'numeric' })}</span>
+                                                </div>
+                                                <h2 className="text-2xl font-bold text-white mb-1">{filteredArticles[0].title}</h2>
+                                                <p className="text-xs text-gray-200">By {filteredArticles[0].author?.name || 'Unknown'}</p>
+                                            </div>
+                                        </Link>
+                                    </div>
+                                )}
+
+
+                                {/* Article Grid */}
+                                <div className="grid md:grid-cols-2 gap-8">
+                                    {filteredArticles.slice(filteredArticles[0] ? 1 : 0).map((article) => (
+                                        <ArticleCard key={article.id} article={article} />
+                                    ))}
+                                </div>
+                            </>
+                        ) : (
+                            <p>
+                                No articles found
+                                {selectedCategory !== 'all'
+                                    ? ` in the "${categories.find((c) => c.slug === selectedCategory)?.name || selectedCategory}" category`
+                                    : ''}.
+                            </p>
+                        )}
+                    </div>
+
+
+
+                    {/* Sidebar */}
+                    <div className="lg:w-1/3">
+                        {/* Remove max-height and overflow from here */}
+                        <div className="sticky-sidebar lg:sticky lg:top-32 space-y-8 lg:pr-2">
+                            {/* Popular News → GANTI jadi Today's News */}
+                            <div className="neumorphic p-6 rounded-2xl">
+                                <h2 className="text-2xl font-bold mb-6 flex items-center">
+                                    <div className="neumorphic w-10 h-10 rounded-full flex items-center justify-center mr-3">
+                                        <i className="fas fa-sun text-[#013f6e]"></i>
+                                    </div>
+                                    Today’s News
+                                </h2>
+                                {/* Add overflow and max-height to the list container */}
+                                <div className="space-y-5 overflow-y h-fit scrollbar-thin scrollbar-thumb-primary scrollbar-track-gray-100 pr-2">
+                                    {articlesToday.length > 0 ? (
+                                        articlesToday.map((item, index) => (
+                                            <Link
+                                                key={item.id}
+                                                href={`/article/${item.slug}`}
+                                                className="popular-item block pb-4"
+                                                aria-label={`Read ${item.title}`}
+                                            >
+                                                <div className="flex items-start">
+                                                    <div className="neumorphic w-8 h-8 rounded-full flex items-center justify-center mr-4 flex-shrink-0">
+                                                        <span className="popular-rank">{index + 1}</span>
+                                                    </div>
+                                                    <div>
+                                                        <h3 className="font-bold mb-1 hover:text-[var(--primary)] transition-colors">
+                                                            {item.title}
+                                                        </h3>
+                                                        <div className="flex items-center text-sm text-gray-500">
+
+                                                            <span>
+                                                                <i className="far fa-clock mr-1"></i>{" "}
+                                                                {getFormattedDate(item.created_at, {
+                                                                    month: "long",
+                                                                    day: "numeric",
+                                                                })}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        ))
+                                    ) : (
+                                        <p>No articles submitted today.</p>
+                                    )}
+                                </div>
+                            </div>
+
+
+                            {/* Categories */}
+                            <div className="neumorphic p-6 rounded-2xl">
+                                <h2 className="text-2xl font-bold mb-6 flex items-center">
+                                    <div className="neumorphic w-10 h-10 rounded-full flex items-center justify-center mr-3">
+                                        <i className="fas fa-tags text-[#013f6e]"></i>
+                                    </div>
+                                    Categories
+                                </h2>
+                                {/* Add overflow and max-height to the list container */}
+                                <ul className="space-y-3 overflow-y-auto max-h-[200rem] scrollbar-thin scrollbar-thumb-primary scrollbar-track-gray-100 pr-2"> {/* Added classes */}
+                                    {(categories.length > 0 ? categories : fallbackCategories).map((category) => (
+                                        <li key={category.id}>
+                                            <Link
+                                                href={`/category/${category.slug}`}
+                                                className={`flex justify-between items-center p-2 rounded-lg hover:bg-gray-100 transition-colors ${selectedCategory === category.slug ? 'bg-blue-50 text-[var(--primary)] font-semibold neumorphic-inset-light' : 'text-gray-700'
+                                                    }`}
+                                                onClick={(e) => { e.preventDefault(); handleCategoryClick(category.slug); }} // Use button-like behavior
+                                                aria-current={selectedCategory === category.slug ? 'page' : undefined}
+                                            >
+                                                <span>{category.name}</span>
+                                                <span className={`neumorphic-badge text-xs px-2 py-0.5 rounded-full ${selectedCategory === category.slug ? 'bg-[var(--primary)] text-white' : 'bg-gray-200 text-gray-600'
+                                                    }`}>
+                                                    {category.article_count || 0}
+                                                </span>
+                                            </Link>
+                                        </li>
+                                    ))}
+                                </ul>
+                            </div>
                         </div>
-                      </Link>
-                    ))
-                  ) : (
-                    <p>No articles submitted today.</p>
-                  )}
+                    </div>
                 </div>
-              </div>
+            </main>
 
-
-              {/* Categories */}
-              <div className="neumorphic p-6 rounded-2xl">
-                <h2 className="text-2xl font-bold mb-6 flex items-center">
-                  <div className="neumorphic w-10 h-10 rounded-full flex items-center justify-center mr-3">
-                    <i className="fas fa-tags text-[#013f6e]"></i>
-                  </div>
-                  Categories
-                </h2>
-                {/* Add overflow and max-height to the list container */}
-                <ul className="space-y-3 overflow-y-auto max-h-[200rem] scrollbar-thin scrollbar-thumb-primary scrollbar-track-gray-100 pr-2"> {/* Added classes */}
-                  {(categories.length > 0 ? categories : fallbackCategories).map((category) => (
-                    <li key={category.id}>
-                      <Link
-                        href={`/category/${category.slug}`}
-                        className={`flex justify-between items-center p-2 rounded-lg hover:bg-gray-100 transition-colors ${selectedCategory === category.slug ? 'bg-blue-50 text-[var(--primary)] font-semibold neumorphic-inset-light' : 'text-gray-700'
-                          }`}
-                        onClick={(e) => { e.preventDefault(); handleCategoryClick(category.slug); }} // Use button-like behavior
-                        aria-current={selectedCategory === category.slug ? 'page' : undefined}
-                      >
-                        <span>{category.name}</span>
-                        <span className={`neumorphic-badge text-xs px-2 py-0.5 rounded-full ${selectedCategory === category.slug ? 'bg-[var(--primary)] text-white' : 'bg-gray-200 text-gray-600'
-                          }`}>
-                          {category.article_count || 0}
-                        </span>
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
-
-      {/* Footer */}
-      <footer className="py-16 mt-16 bg-slate-50 relative z-10">
-        <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 px-4">
-          {/* Column 1: Logo/About/Socials */}
-          <div>
-            <h3 className="text-2xl font-bold mb-6 text-[var(--primary)] flex items-center">
-              <Image
-                src="/uploads/logo-removebg-preview.png"
-                alt="Logo"
-                width={80}
-                height={80}
-                className="w-[80px] h-auto mr-4"
-                priority
-              />
-              ANTARABOGOR
-            </h3>
-            <p className="text-gray-600 mb-6">
-              Delivering news with a retro-modern twist since 2025. Your trusted source for accurate and timely
-              information.
-            </p>
-            <div className="flex space-x-4">
-              {['facebook-f', 'twitter', 'instagram', 'linkedin-in'].map((icon, index) => (
-                <Link
-                  key={index}
-                  href="#"
-                  className="social-icon"
-                  aria-label={`Follow us on ${icon.replace('-', ' ')}`}
-                  rel="noopener noreferrer"
-                >
-                  <i className={`fab fa-${icon}`}></i>
-                </Link>
-              ))}
-            </div>
-          </div>
-          {/* Column 2: Quick Links & Categories */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-            <div>
-              <h4 className="text-lg font-bold mb-6 border-b border-[var(--primary)] pb-2">Quick Links</h4>
-              <ul className="space-y-3">
-                {['About Us', 'Contact', 'Advertise', 'Careers', 'Privacy Policy'].map((link, index) => (
-                  <li key={index}>
-                    <Link
-                      href="#"
-                      className="text-gray-600 hover:text-[var(--secondary)] transition-colors duration-300 flex items-center"
-                      aria-label={link}
-                    >
-                      <div className="neumorphic-flat w-6 h-6 rounded-full flex items-center justify-center mr-2">
-                        <i className="fas fa-chevron-right text-xs text-[var(--primary)]"></i>
-                      </div>
-                      {link}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div>
-              <h4 className="text-lg font-bold mb-6 border-b border-[var(--primary)] pb-2">Categories</h4>
-              <ul className="space-y-3">
-                {(categories.length > 0 ? categories.slice(0, 5) : fallbackCategories).map((category) => (
-                  <li key={category.id}>
-                    <Link
-                      href={`/category/${category.slug}`}
-                      className="text-gray-600 hover:text-[var(--secondary)] transition-colors duration-300 flex items-center"
-                      aria-label={`View ${category.name} category`}
-                    >
-                      <div className="neumorphic-flat w-6 h-6 rounded-full flex items-center justify-center mr-2">
-                        <i className="fas fa-chevron-right text-xs text-[var(--primary)]"></i>
-                      </div>
-                      {category.name}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-          {/* Column 3: Contact Us */}
-          <div>
-            <h4 className="text-lg font-bold mb-6 border-b border-[var(--primary)] pb-2">Contact Us</h4>
-            <ul className="space-y-4 text-gray-600">
-              <li className="flex items-start">
-                <div className="neumorphic-flat w-8 h-8 rounded-full flex items-center justify-center mr-3">
-                  <i className="fas fa-map-marker-alt text-[var(--primary)]"></i>
+            {/* Footer */}
+            <footer className="py-16 mt-16 bg-slate-50 relative z-10">
+                <div className="container mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 px-4">
+                    {/* Column 1: Logo/About/Socials */}
+                    <div>
+                        <h3 className="text-2xl font-bold mb-6 text-[var(--primary)] flex items-center">
+                            <Image
+                                src="/uploads/logo-removebg-preview.png"
+                                alt="Logo"
+                                width={80}
+                                height={80}
+                                className="w-[80px] h-auto mr-4"
+                                priority
+                            />
+                            ANTARABOGOR
+                        </h3>
+                        <p className="text-gray-600 mb-6">
+                            Delivering news with a retro-modern twist since 2025. Your trusted source for accurate and timely
+                            information.
+                        </p>
+                        <div className="flex space-x-4">
+                            {['facebook-f', 'twitter', 'instagram', 'linkedin-in'].map((icon, index) => (
+                                <Link
+                                    key={index}
+                                    href="#"
+                                    className="social-icon"
+                                    aria-label={`Follow us on ${icon.replace('-', ' ')}`}
+                                    rel="noopener noreferrer"
+                                >
+                                    <i className={`fab fa-${icon}`}></i>
+                                </Link>
+                            ))}
+                        </div>
+                    </div>
+                    {/* Column 2: Quick Links & Categories */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                        <div>
+                            <h4 className="text-lg font-bold mb-6 border-b border-[var(--primary)] pb-2">Quick Links</h4>
+                            <ul className="space-y-3">
+                                {['About Us', 'Contact', 'Advertise', 'Careers', 'Privacy Policy'].map((link, index) => (
+                                    <li key={index}>
+                                        <Link
+                                            href="#"
+                                            className="text-gray-600 hover:text-[var(--secondary)] transition-colors duration-300 flex items-center"
+                                            aria-label={link}
+                                        >
+                                            <div className="neumorphic-flat w-6 h-6 rounded-full flex items-center justify-center mr-2">
+                                                <i className="fas fa-chevron-right text-xs text-[var(--primary)]"></i>
+                                            </div>
+                                            {link}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                        <div>
+                            <h4 className="text-lg font-bold mb-6 border-b border-[var(--primary)] pb-2">Categories</h4>
+                            <ul className="space-y-3">
+                                {(categories.length > 0 ? categories.slice(0, 5) : fallbackCategories).map((category) => (
+                                    <li key={category.id}>
+                                        <Link
+                                            href={`/category/${category.slug}`}
+                                            className="text-gray-600 hover:text-[var(--secondary)] transition-colors duration-300 flex items-center"
+                                            aria-label={`View ${category.name} category`}
+                                        >
+                                            <div className="neumorphic-flat w-6 h-6 rounded-full flex items-center justify-center mr-2">
+                                                <i className="fas fa-chevron-right text-xs text-[var(--primary)]"></i>
+                                            </div>
+                                            {category.name}
+                                        </Link>
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+                    {/* Column 3: Contact Us */}
+                    <div>
+                        <h4 className="text-lg font-bold mb-6 border-b border-[var(--primary)] pb-2">Contact Us</h4>
+                        <ul className="space-y-4 text-gray-600">
+                            <li className="flex items-start">
+                                <div className="neumorphic-flat w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                                    <i className="fas fa-map-marker-alt text-[var(--primary)]"></i>
+                                </div>
+                                <span>123 Retro Street, News City, NC 12345</span>
+                            </li>
+                            <li className="flex items-center">
+                                <div className="neumorphic-flat w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                                    <i className="fas fa-phone-alt text-[var(--primary)]"></i>
+                                </div>
+                                <span>(123) 456-7890</span>
+                            </li>
+                            <li className="flex items-center">
+                                <div className="neumorphic-flat w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                                    <i className="fas fa-envelope text-[var(--primary)]"></i>
+                                </div>
+                                <span>info@retronews.com</span>
+                            </li>
+                            <li className="flex items-center">
+                                <div className="neumorphic-flat w-8 h-8 rounded-full flex items-center justify-center mr-3">
+                                    <i className="far fa-clock text-[var(--primary)]"></i>
+                                </div>
+                                <span>Mon-Fri: 9AM - 5PM</span>
+                            </li>
+                        </ul>
+                    </div>
                 </div>
-                <span>123 Retro Street, News City, NC 12345</span>
-              </li>
-              <li className="flex items-center">
-                <div className="neumorphic-flat w-8 h-8 rounded-full flex items-center justify-center mr-3">
-                  <i className="fas fa-phone-alt text-[var(--primary)]"></i>
+                <div className="border-t border-gray-300 mt-12 pt-8 text-center text-gray-500">
+                    <p>
+                        © 2025 ANTARABOGOR. All rights reserved. | Designed with{' '}
+                        <i className="fas fa-heart text-[var(--secondary)] mx-1"></i> for news enthusiasts
+                    </p>
                 </div>
-                <span>(123) 456-7890</span>
-              </li>
-              <li className="flex items-center">
-                <div className="neumorphic-flat w-8 h-8 rounded-full flex items-center justify-center mr-3">
-                  <i className="fas fa-envelope text-[var(--primary)]"></i>
+                <div className="text-center text-xs text-gray-500 mt-8">
+                    Icons made from <a href="https://www.onlinewebfonts.com/icon" target="_blank" rel="noopener noreferrer" className="underline">svg icons</a> is licensed by CC BY 4.0
                 </div>
-                <span>info@retronews.com</span>
-              </li>
-              <li className="flex items-center">
-                <div className="neumorphic-flat w-8 h-8 rounded-full flex items-center justify-center mr-3">
-                  <i className="far fa-clock text-[var(--primary)]"></i>
-                </div>
-                <span>Mon-Fri: 9AM - 5PM</span>
-              </li>
-            </ul>
-          </div>
+            </footer>
         </div>
-        <div className="border-t border-gray-300 mt-12 pt-8 text-center text-gray-500">
-          <p>
-            © 2025 ANTARABOGOR. All rights reserved. | Designed with{' '}
-            <i className="fas fa-heart text-[var(--secondary)] mx-1"></i> for news enthusiasts
-          </p>
-        </div>
-        <div className="text-center text-xs text-gray-500 mt-8">
-          Icons made from <a href="https://www.onlinewebfonts.com/icon" target="_blank" rel="noopener noreferrer" className="underline">svg icons</a> is licensed by CC BY 4.0
-        </div>
-      </footer>
-    </div>
-  );
+    );
 }
-
 

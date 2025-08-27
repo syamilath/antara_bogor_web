@@ -1,0 +1,79 @@
+/* Styles for DOCX extracted tables */
+.docx-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+  font-size: 0.9rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.docx-table thead {
+  background-color: #f8f9fa;
+}
+
+.docx-table th {
+  background-color: #f8f9fa;
+  color: #495057;
+  font-weight: 600;
+  padding: 12px 8px;
+  text-align: left;
+  border: 1px solid #dee2e6;
+  border-bottom: 2px solid #dee2e6;
+}
+
+.docx-table td {
+  padding: 10px 8px;
+  border: 1px solid #dee2e6;
+  vertical-align: top;
+}
+
+.docx-table tbody tr:nth-child(even) {
+  background-color: #f8f9fa;
+}
+
+.docx-table tbody tr:hover {
+  background-color: #e9ecef;
+}
+
+.docx-table tr:first-child th {
+  border-top: none;
+}
+
+.docx-table tr:first-child td {
+  border-top: none;
+}
+
+/* Responsive table wrapper */
+.table-responsive {
+  overflow-x: auto;
+  margin: 1rem 0;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Mobile responsiveness */
+@media (max-width: 768px) {
+  .docx-table {
+    font-size: 0.8rem;
+  }
+  
+  .docx-table th,
+  .docx-table td {
+    padding: 8px 6px;
+  }
+}
+
+/* Print styles */
+@media print {
+  .docx-table {
+    box-shadow: none;
+    border: 1px solid #000;
+  }
+  
+  .docx-table th,
+  .docx-table td {
+    border: 1px solid #000;
+  }
+}

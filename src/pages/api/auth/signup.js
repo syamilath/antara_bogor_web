@@ -3,6 +3,8 @@ import bcrypt from 'bcrypt';
 import { IncomingForm } from 'formidable';
 import fs from 'fs';
 import path from 'path';
+import { validatePassword } from '../../../lib/passwordValidation';
+import { encryptionService } from '../../../lib/encryptionService';
 
 export const config = {
     api: {
@@ -47,21 +49,54 @@ export default async function handler(req, res) {
         if (!username || !email || !password) {
             return res.status(400).json({ error: 'Username, email, and password are required' });
         }
+
+        // Validate password complexity
+        const passwordValidation = validatePassword(password);
+        if (!passwordValidation.isValid) {
+            return res.status(400).json({ 
+                error: 'Password does not meet security requirements',
+                details: passwordValidation.errors
+            });
+        }
         // Check if user already exists
         const existingUser = await query('SELECT id FROM users WHERE email = ? OR username = ?', [email, username]);
         if (existingUser.length > 0) {
             return res.status(409).json({ error: 'Email or username already exists' });
         }
-        // Hash the password
-        const saltRounds = 10;
+        // Hash the password with increased security
+        const saltRounds = 12; // Increased from 10 for better security
         const hashedPassword = await bcrypt.hash(password, saltRounds);
         // Insert the new user into the database
         const result = await query(
             'INSERT INTO users (username, email, password_hash, profile_photo, role, created_at) VALUES (?, ?, ?, ?, ?, NOW())',
-            [username, email, hashedPassword, profilePhotoPath, 'writer']
+            [username, email, hashedPassword, profilePhotoPath, 'user']
         );
+        
         if (result.affectedRows === 1) {
-            return res.status(201).json({ message: 'User created successfully', userId: result.insertId });
+            const userId = result.insertId;
+            
+            try {
+                // Automatically enable E2E encryption for new user
+                console.log(`Setting up E2E encryption for new user: ${userId}`);
+                await encryptionService.initializeUserEncryption(userId, password);
+                console.log(`E2E encryption enabled successfully for user: ${userId}`);
+                
+                return res.status(201).json({ 
+                    message: 'User created successfully with E2E encryption enabled', 
+                    userId: userId,
+                    encryptionEnabled: true
+                });
+            } catch (encryptionError) {
+                console.error('Failed to enable encryption for new user:', encryptionError);
+                // User was created but encryption failed - still return success
+                // The user can set up encryption later if needed
+                return res.status(201).json({ 
+                    message: 'User created successfully (encryption setup failed - can be enabled later)', 
+                    userId: userId,
+                    encryptionEnabled: false,
+                    encryptionError: encryptionError.message
+                });
+            }
         } else {
             throw new Error('Failed to insert user into database');
         }

@@ -1,9 +1,10 @@
 import { NextResponse } from 'next/server';
+import { isAdminPath } from './src/lib/adminConfig';
 
 export async function middleware(request) {
   const { pathname } = request.nextUrl;
 
-  if (pathname.startsWith('/admin')) {
+  if (isAdminPath(pathname)) {
     try {
       const response = await fetch(`${request.nextUrl.origin}/api/auth/me`, { // <-- This endpoint is called
         headers: {
@@ -16,7 +17,8 @@ export async function middleware(request) {
       }
 
       const user = await response.json();
-      if (user.role !== 'admin') { 
+      // Allow admin and writer roles, plus legacy users without roles
+      if (user.role !== 'admin' && user.role !== 'writer' && user.role !== null) { 
         return NextResponse.redirect(new URL('/login', request.url));
       }
     } catch (error) {
@@ -29,5 +31,5 @@ export async function middleware(request) {
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/dashboard/:path*'],
 };

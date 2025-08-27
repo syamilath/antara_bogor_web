@@ -242,13 +242,14 @@ export default function EditArticlePage() {
 
 
     return (
-        <div className="flex min-h-screen bg-gray-100">
+        <div className="flex h-screen bg-gray-100">
             {/* Assuming Sidebar is in a layout component */}
             <Sidebar role={user?.role} />
-            <main className="flex-1 p-8">
-                <h1 className="text-3xl font-bold text-gray-800 mb-6">Edit Article</h1>
+            <main className="flex-1 overflow-y-auto">
+                <div className="p-8 min-h-full">
+                    <h1 className="text-3xl font-bold text-gray-800 mb-6">Edit Article</h1>
 
-                <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-6">
+                    <form onSubmit={handleSubmit} className="bg-white p-6 rounded-lg shadow-md space-y-6">
                     {/* Title */}
                     <div>
                         <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-1">Title</label>
@@ -340,6 +341,7 @@ export default function EditArticlePage() {
                         </button>
                     </div>
                 </form>
+                </div>
             </main>
         </div>
     );

@@ -39,7 +39,7 @@ export async function GET(request) {
       articles = await query(`
         SELECT
           a.id, a.title, a.slug, a.status, a.created_at,
-          a.image_url,
+          a.image_url, COALESCE(a.visits, 0) as visits, a.keywords,
           c.name AS category_name, c.id AS category_id,
           u.username AS author_name,
           GROUP_CONCAT(t.name SEPARATOR ', ') AS tags_concatenated
@@ -56,7 +56,7 @@ export async function GET(request) {
       articles = await query(`
         SELECT
           a.id, a.title, a.slug, a.status, a.created_at,
-          a.image_url,
+          a.image_url, COALESCE(a.visits, 0) as visits, a.keywords,
           c.name AS category_name, c.id AS category_id,
           u.username AS author_name,
           GROUP_CONCAT(t.name SEPARATOR ', ') AS tags_concatenated
@@ -86,6 +86,19 @@ export async function GET(request) {
       "Database query error details:",
       error.sqlMessage || error.message
     );
+    
+    // Check if error is due to missing columns
+    if (error.sqlMessage && (error.sqlMessage.includes("visits") || error.sqlMessage.includes("keywords"))) {
+      return NextResponse.json(
+        { 
+          error: "Database schema outdated", 
+          details: "Missing required columns. Please run the database update script.",
+          sqlError: error.sqlMessage
+        },
+        { status: 500 }
+      );
+    }
+    
     return NextResponse.json(
       { error: "Failed to fetch articles", details: error.message },
       { status: 500 }

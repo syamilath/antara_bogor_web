@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E2E Encryption Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        button { padding: 10px 15px; margin: 5px; background: #007bff; color: white; border: none; border-radius: 3px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        input, textarea { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 3px; }
+        .result { margin: 10px 0; padding: 10px; background: #f8f9fa; border-radius: 3px; font-family: monospace; }
+    </style>
+</head>
+<body>
+    <h1>🔐 E2E Encryption System Test</h1>
+    
+    <div class="test-section">
+        <h2>1. Check Encryption Status</h2>
+        <button onclick="checkStatus()">Check Status</button>
+        <div id="status-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>2. Test User Data Encryption</h2>
+        <input type="password" id="password" placeholder="Enter your encryption password">
+        <input type="text" id="test-data" placeholder="Enter test data to encrypt" value="This is secret test data">
+        <br>
+        <button onclick="encryptUserData()">Encrypt Data</button>
+        <button onclick="decryptUserData()">Decrypt Data</button>
+        <div id="userdata-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>3. Test Article Encryption</h2>
+        <input type="number" id="article-id" placeholder="Article ID" value="2">
+        <textarea id="article-content" placeholder="Article content to encrypt">This is a secret article draft that should be encrypted!</textarea>
+        <br>
+        <button onclick="encryptArticle()">Encrypt Article</button>
+        <button onclick="decryptArticle()">Decrypt Article</button>
+        <div id="article-result" class="result"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>4. Test Secure Messaging</h2>
+        <input type="number" id="recipient-id" placeholder="Recipient User ID" value="1">
+        <textarea id="message-content" placeholder="Secret message">This is a confidential encrypted message!</textarea>
+        <br>
+        <button onclick="sendMessage()">Send Encrypted Message</button>
+        <input type="number" id="message-id" placeholder="Message ID to decrypt" value="1">
+        <button onclick="receiveMessage()">Decrypt Message</button>
+        <div id="message-result" class="result"></div>
+    </div>
+
+    <script>
+        async function checkStatus() {
+            try {
+                const response = await fetch('/api/encryption/setup');
+                const data = await response.json();
+                document.getElementById('status-result').innerHTML = 
+                    `<strong>Status:</strong> ${JSON.stringify(data, null, 2)}`;
+                document.getElementById('status-result').className = 'result success';
+            } catch (error) {
+                document.getElementById('status-result').innerHTML = 
+                    `<strong>Error:</strong> ${error.message}`;
+                document.getElementById('status-result').className = 'result error';
+            }
+        }
+
+        async function encryptUserData() {
+            const password = document.getElementById('password').value;
+            const testData = document.getElementById('test-data').value;
+            
+            if (!password || !testData) {
+                alert('Please enter both password and test data');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/encryption/user-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'encrypt',
+                        fieldName: 'test_field',
+                        value: testData,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                document.getElementById('userdata-result').innerHTML = 
+                    `<strong>Encrypt Result:</strong> ${JSON.stringify(data, null, 2)}`;
+                document.getElementById('userdata-result').className = 'result success';
+            } catch (error) {
+                document.getElementById('userdata-result').innerHTML = 
+                    `<strong>Error:</strong> ${error.message}`;
+                document.getElementById('userdata-result').className = 'result error';
+            }
+        }
+
+        async function decryptUserData() {
+            const password = document.getElementById('password').value;
+            
+            if (!password) {
+                alert('Please enter your encryption password');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/encryption/user-data', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'decrypt',
+                        fieldName: 'test_field',
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                document.getElementById('userdata-result').innerHTML = 
+                    `<strong>Decrypt Result:</strong> ${JSON.stringify(data, null, 2)}`;
+                document.getElementById('userdata-result').className = 'result success';
+            } catch (error) {
+                document.getElementById('userdata-result').innerHTML = 
+                    `<strong>Error:</strong> ${error.message}`;
+                document.getElementById('userdata-result').className = 'result error';
+            }
+        }
+
+        async function encryptArticle() {
+            const password = document.getElementById('password').value;
+            const articleId = document.getElementById('article-id').value;
+            const content = document.getElementById('article-content').value;
+            
+            if (!password || !articleId || !content) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/encryption/articles', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'encrypt',
+                        articleId: parseInt(articleId),
+                        content: content,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                document.getElementById('article-result').innerHTML = 
+                    `<strong>Encrypt Article Result:</strong> ${JSON.stringify(data, null, 2)}`;
+                document.getElementById('article-result').className = 'result success';
+            } catch (error) {
+                document.getElementById('article-result').innerHTML = 
+                    `<strong>Error:</strong> ${error.message}`;
+                document.getElementById('article-result').className = 'result error';
+            }
+        }
+
+        async function decryptArticle() {
+            const password = document.getElementById('password').value;
+            const articleId = document.getElementById('article-id').value;
+            
+            if (!password || !articleId) {
+                alert('Please enter password and article ID');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/encryption/articles', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'decrypt',
+                        articleId: parseInt(articleId),
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                document.getElementById('article-result').innerHTML = 
+                    `<strong>Decrypt Article Result:</strong> ${JSON.stringify(data, null, 2)}`;
+                document.getElementById('article-result').className = 'result success';
+            } catch (error) {
+                document.getElementById('article-result').innerHTML = 
+                    `<strong>Error:</strong> ${error.message}`;
+                document.getElementById('article-result').className = 'result error';
+            }
+        }
+
+        async function sendMessage() {
+            const password = document.getElementById('password').value;
+            const recipientId = document.getElementById('recipient-id').value;
+            const message = document.getElementById('message-content').value;
+            
+            if (!password || !recipientId || !message) {
+                alert('Please fill in all fields');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/encryption/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'send',
+                        recipientId: parseInt(recipientId),
+                        message: message,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                document.getElementById('message-result').innerHTML = 
+                    `<strong>Send Message Result:</strong> ${JSON.stringify(data, null, 2)}`;
+                document.getElementById('message-result').className = 'result success';
+            } catch (error) {
+                document.getElementById('message-result').innerHTML = 
+                    `<strong>Error:</strong> ${error.message}`;
+                document.getElementById('message-result').className = 'result error';
+            }
+        }
+
+        async function receiveMessage() {
+            const password = document.getElementById('password').value;
+            const messageId = document.getElementById('message-id').value;
+            
+            if (!password || !messageId) {
+                alert('Please enter password and message ID');
+                return;
+            }
+
+            try {
+                const response = await fetch('/api/encryption/messages', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'receive',
+                        messageId: parseInt(messageId),
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                document.getElementById('message-result').innerHTML = 
+                    `<strong>Receive Message Result:</strong> ${JSON.stringify(data, null, 2)}`;
+                document.getElementById('message-result').className = 'result success';
+            } catch (error) {
+                document.getElementById('message-result').innerHTML = 
+                    `<strong>Error:</strong> ${error.message}`;
+                document.getElementById('message-result').className = 'result error';
+            }
+        }
+
+        // Auto-check status on page load
+        window.onload = function() {
+            checkStatus();
+        };
+    </script>
+</body>
+</html>

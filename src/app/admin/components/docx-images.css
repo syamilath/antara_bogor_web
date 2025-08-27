@@ -1,0 +1,28 @@
+/* Styles for DOCX imported images in TipTap editor */
+.tiptap-image {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  margin: 8px 0;
+  display: block;
+}
+
+/* Ensure base64 images are handled properly */
+.ProseMirror img[src^="data:"] {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  margin: 8px 0;
+}
+
+/* Loading state for images */
+.ProseMirror img {
+  transition: opacity 0.2s ease-in-out;
+}
+
+.ProseMirror img:not([src]) {
+  opacity: 0.5;
+  background: #f3f4f6;
+  min-height: 100px;
+}

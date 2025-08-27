@@ -45,14 +45,14 @@ export async function POST(request) {
       role: userRole,
     };
 
-    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign(tokenPayload, JWT_SECRET, { expiresIn: '7d' });
 
     cookies().set('auth_token', token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'lax',
       path: '/',
-      maxAge: 60 * 60,
+      maxAge: 7 * 24 * 60 * 60, // 7 days
     });
 
     return NextResponse.json({

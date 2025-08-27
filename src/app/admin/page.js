@@ -10,6 +10,9 @@ import ImageUpload from './components/ImageUpload.jsx';
 import CategorySelect from './components/CategorySelect.jsx';
 import Tags from './components/Tags.jsx';
 import PublishSettings from './components/PublishSettings.jsx';
+import DocxUpload from './components/DocxUpload.jsx';
+import './components/docx-images.css';
+import './components/docx-tables.css';
 // Remove direct import of TiptapEditor
 // import TiptapEditor from './components/TiptapEditor.jsx';
 const TiptapEditor = dynamic(() => import('./components/TiptapEditor.jsx'), { ssr: false });
@@ -33,6 +36,7 @@ function useArticleForm() {
   const [customSlug, setCustomSlug] = useState('');
   const [keywords, setKeywords] = useState([]);
   const [newKeyword, setNewKeyword] = useState('');
+  const [docxUploadError, setDocxUploadError] = useState('');
 
   // Fetch Categories and User
   useEffect(() => {
@@ -133,6 +137,48 @@ function useArticleForm() {
     setKeywords(keywords.filter((k) => k !== kw));
   };
 
+  // DOCX Upload Handling
+  const handleDocxParsed = (parsedData) => {
+    setTitle(parsedData.title);
+    setContent(parsedData.content);
+    setDocxUploadError('');
+    
+    // Create status message based on content
+    let statusMessage = 'Document imported successfully! You can now edit and publish.';
+    const contentItems = [];
+    
+    if (parsedData.imageCount > 0) {
+      contentItems.push(`${parsedData.imageCount} image(s)`);
+    }
+    if (parsedData.tableCount > 0) {
+      contentItems.push(`${parsedData.tableCount} table(s)`);
+    }
+    
+    if (contentItems.length > 0) {
+      statusMessage += ` ${contentItems.join(' and ')} have been embedded in the content.`;
+    }
+    
+    setPublishStatus(statusMessage);
+    
+    // Show warnings if any
+    if (parsedData.warnings && parsedData.warnings.length > 0) {
+      console.log('DOCX parsing warnings:', parsedData.warnings);
+    }
+    
+    // Log extracted content for debugging
+    if (parsedData.images && parsedData.images.length > 0) {
+      console.log('Extracted images:', parsedData.images.length);
+    }
+    if (parsedData.tables && parsedData.tables.length > 0) {
+      console.log('Extracted tables:', parsedData.tables.length);
+    }
+  };
+
+  const handleDocxError = (error) => {
+    setDocxUploadError(error);
+    setPublishStatus('');
+  };
+
   // Publish or Save Draft
   const handlePublish = async (e, status = 'published') => {
     e.preventDefault();
@@ -222,6 +268,9 @@ function useArticleForm() {
     setNewKeyword,
     handleAddKeyword,
     handleRemoveKeyword,
+    docxUploadError,
+    handleDocxParsed,
+    handleDocxError,
   };
 }
 
@@ -261,6 +310,9 @@ export default function AdminPanel() {
     setNewKeyword,
     handleAddKeyword,
     handleRemoveKeyword,
+    docxUploadError,
+    handleDocxParsed,
+    handleDocxError,
   } = useArticleForm();
 
   // Authentication Check
@@ -299,7 +351,7 @@ export default function AdminPanel() {
   }
 
   return (
-    <div className="flex min-h-screen h-screen bg-gray-100">
+    <div className="flex h-screen bg-gray-100">
       {/* Desktop Sidebar */}
       <div className="hidden md:block">
         <Sidebar role={user.role} />
@@ -365,8 +417,23 @@ export default function AdminPanel() {
                 </button>
               </div>
             </div>
+            {/* DOCX Upload Error Display */}
+            {docxUploadError && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+                <div className="flex">
+                  <svg className="h-5 w-5 text-red-400 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  <p className="text-red-700 text-sm">{docxUploadError}</p>
+                </div>
+              </div>
+            )}
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
+                {/* DOCX Upload */}
+                <DocxUpload onDocxParsed={handleDocxParsed} onError={handleDocxError} />
+                
                 {/* Article Title */}
                 <div className="bg-white bg-opacity-80 backdrop-blur-md p-6 rounded-lg shadow-lg transition-all duration-300 animate-fadeIn">
                   <label htmlFor="title" className="block text-sm font-medium text-gray-700 mb-2">

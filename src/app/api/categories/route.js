@@ -4,11 +4,11 @@ import { NextResponse } from 'next/server';
 export async function GET() {
   console.log("Attempting to fetch public categories..."); // Keep this log
   try {
-    // Fetch categories with article count (only counts published articles)
+    // Fetch all categories (including those with no articles)
     const sql = `
       SELECT c.id, c.name, c.slug, COUNT(a.id) AS article_count
       FROM categories c
-      LEFT JOIN articles a ON a.category_id = c.id AND a.status = 'published' -- Removed invalid comment
+      LEFT JOIN articles a ON a.category_id = c.id AND a.status = 'published'
       GROUP BY c.id, c.name, c.slug
       ORDER BY c.name
     `;

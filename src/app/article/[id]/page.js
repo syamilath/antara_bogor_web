@@ -7,6 +7,8 @@ import { useParams } from 'next/navigation';
 import ArticleSidebar from '@/app/components/ArticleSidebar';
 import { fallbackCategories } from '@/app/page';
 import Image from 'next/image';
+import '../article-content.css';
+import { usePersonalization, useReadingTracker } from '../../../hooks/usePersonalization';
    
 
 export default function ArticlePage() {
@@ -17,6 +19,12 @@ export default function ArticlePage() {
   const [sidebarOpen, setSidebarOpen] = useState(false); // <-- Add sidebar state
   const params = useParams();
   const { id: slug } = params;
+  
+  // Personalization hooks
+  const { trackView, trackClick } = usePersonalization();
+  
+  // Reading tracker (will be initialized after article loads)
+  const { scrollPercentage } = article ? useReadingTracker(article.id, article.category_id) : { scrollPercentage: 0 };
 
   useEffect(() => {
     const animateOnScroll = () => {
@@ -108,6 +116,11 @@ export default function ArticlePage() {
           setArticle(data);
           // Set selectedCategory to the article's category slug if available
           setSelectedCategory(data.category_slug || null);
+          
+          // Track article view for personalization
+          if (data.id && data.category_id) {
+            trackView(data.id, data.category_id);
+          }
         } else {
           console.error(data.error);
         }
@@ -196,7 +209,7 @@ export default function ArticlePage() {
           {loading ? (
             <div className="text-center text-gray-500 text-lg animate-pulse">Loading article...</div>
           ) : article ? (
-            <article className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-200 hover:shadow-2xl transition-transform transform hover:-translate-y-1 duration-500">
+            <article className="bg-white rounded-3xl shadow-xl overflow-hidden border border-gray-200">
               <div className="p-8">
                 <div className="flex flex-wrap gap-3 items-center mb-6">
                   <span className="bg-blue-600 text-white text-xs font-semibold uppercase px-3 py-1 rounded-full">{article.category_name || 'Unknown'}</span>
@@ -224,7 +237,7 @@ export default function ArticlePage() {
 />
 
               </div>
-              <div className="p-8 text-gray-800 leading-relaxed text-lg space-y-6">
+              <div className="p-8 text-gray-800 leading-relaxed text-lg space-y-6 article-content">
                 <div dangerouslySetInnerHTML={{ __html: article.content }} />
               </div>
               {Array.isArray(article.tags) && article.tags.length > 0 && (
